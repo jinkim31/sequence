@@ -1,4 +1,4 @@
-#include "../include/sequence.h"
+#include "../inc/sequence.h"
 
 using namespace seq;
 
@@ -49,7 +49,11 @@ bool Sequence::spinOnce()
 	//cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
 	if(!running) return false;
 
+#ifdef SEQUENCE_ROS_ENV
+	while(ros::ok)	//enable ros node shutdown using ctrl+c in terminal
+#else
 	while(true)
+#endif
 	{
 		//Check for end of the sequence.
 		if(blockList.empty() || currentStep == blockList.size())
