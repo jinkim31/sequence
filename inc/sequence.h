@@ -1,14 +1,3 @@
-
-/*
-Sequence 1.0.1 Sequential mission management library
-This library contains implementations of sequence and basic element blocks.
-Jin Kim 2021
-
-tips:
-Custom blocks can be made by inheriting Block class.
-It is also possible to accommodate a sequence in a block with the SequenceBlock.
-*/
-
 #ifndef SEQUENCE_H_
 #define SEQUENCE_H_
 
@@ -27,16 +16,14 @@ namespace seq
 class Block
 {
 private:
-	virtual Block* doClone() = 0;
 public:
 	struct SpinInfo
 	{
-		std::chrono::duration<double> timeDelta;
+		double timeDelta;
 	};
 	virtual bool spinOnce(SpinInfo spinInfo) = 0;	//returns true when block is 'finished' and good to move on to the next block.
 	virtual void reset() = 0;	//Sequence calls reset() and resets the block before moving on to the next one to make sure it can be used again.
 	virtual void notifyStart() = 0;
-	Block* clone();
 };
 
 class Sequence
@@ -71,8 +58,6 @@ public:
   		addArgs(blockPtrs...);
 	}
 
-	Sequence* clone();
-
 	~Sequence();
 
 	void add(Block* block);
@@ -88,29 +73,43 @@ public:
 	void enableSteadyStep(bool value);
 };
 
+class Timeout
+{
+private:
+	double timeSec;
+	double timeElapsed;
+	function<void(void)> timeoutHandler;
+	bool timeoutHandlerAvailable;
+public:
+	Timeout(double timeSec, function<void(void)> timeoutHandler);
+	Timeout(double timeSec);
+	Timeout();
+	void setTime(double timeSec);
+	void setTimeoutHandler(function<void(void)> timeoutHandler);
+	void reset();
+	bool addTime(double timeDelta);
+	double getTimeSec() { return timeSec; }
+};
+
 namespace block
 {
 class Print : public Block
 {
 private:
 	std::string text;
-	Block* doClone();
 public:
 	Print(const std::string& text);
 	virtual void notifyStart(){}
 	virtual bool spinOnce(SpinInfo spinInfo);
 	virtual void reset();
-	Block* clone();
 };
 
 class Delay : public Block
 {
 private:
-	double timeSeconds;
-	double timeElapsed;
-	virtual Block* doClone();
+	Timeout timeout;
 public:
-	Delay(int timeSeconds);
+	Delay(double timeSeconds);
 	virtual void notifyStart(){}
 	virtual bool spinOnce(SpinInfo spinInfo);
 	virtual void reset();
@@ -120,7 +119,6 @@ class Function : public Block
 {
 private:
 	function<void(void)> func;
-	virtual Block* doClone();
 public:
 	Function(function<void(void)> func);
 	virtual void notifyStart(){}
@@ -131,10 +129,12 @@ public:
 class WaitFor : public Block
 {
 private:
-	function<bool(void)> func;
-	virtual Block* doClone();
+	function<bool(void)> breakCondition;
+	Timeout timeout;
 public:
-	WaitFor(function<bool(void)> func);
+	WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler);
+	WaitFor(function<bool(void)> breakCondition, double timeout);
+	WaitFor(function<bool(void)> breakCondition);
 	virtual void notifyStart(){}
 	virtual bool spinOnce(SpinInfo spinInfo);
 	virtual void reset();
@@ -143,7 +143,7 @@ public:
 class SequenceBlock : public Block
 {
 private:
-	virtual Block* doClone();
+
 protected:
 	Sequence* sequence;
 public:
@@ -157,23 +157,13 @@ public:
 class LoopSequence : public SequenceBlock
 {
 private:
+	Timeout timeout;
 	function<bool(void)> breakCondition;
 public:
-	LoopSequence(Sequence *sequence, function<bool(void)> breakCondition) : SequenceBlock(sequence)
-	{
-		this->breakCondition = breakCondition;
-	}
-	virtual bool spinOnce(SpinInfo spinInfo)
-	{
-		if(sequence->spinOnce())
-		{
-			sequence->reset();
-    		sequence->start();
-
-			return breakCondition();
-		}
-		return false;
-	}
+	LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler);
+	LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout);
+	LoopSequence(Sequence* sequence, function<bool(void)> breakCondition);
+	virtual bool spinOnce(SpinInfo spinInfo);
 };
 
 }

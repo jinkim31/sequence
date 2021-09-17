@@ -8,18 +8,8 @@ Sequence::Sequence()
 	currentStep = 0;
 	finished = false;
 	running = false;
-	steadyStep = true;
-}
-
-Sequence* Sequence::clone()
-{
-	Sequence *sequence = new Sequence();
-	for(Block* block :blockList)
-	{
-		sequence->add(block->clone());
-	}
-
-	return sequence;
+	steadyStep = false;
+	requestedStep = 0;
 }
 
 Sequence::~Sequence()
@@ -60,7 +50,7 @@ bool Sequence::spinOnce()
 		{
 			reset();
 			finished = true;
-			cout<<"end of sequence"<<endl;
+			//cout<<"end of sequence"<<endl;
 			return true;
 		}
 
@@ -70,7 +60,7 @@ bool Sequence::spinOnce()
 		chrono::duration<double> timeUpdateDelta = chrono::system_clock::now() - timeLastUpdate;
 		timeLastUpdate = chrono::system_clock::now();
 		Block::SpinInfo spinInfo;
-		spinInfo.timeDelta = timeUpdateDelta;
+		spinInfo.timeDelta = timeUpdateDelta.count();
 
 		requestedStep = 1;
 		if(blockList[currentStep]->spinOnce(spinInfo))
@@ -130,7 +120,7 @@ bool Sequence::isFinished()
 }
 void Sequence::insertInitiator()
 {
-	blockList.insert(blockList.begin(), new block::Delay(1));
+
 }
 
 void Sequence::enableSteadyStep(bool value)
@@ -138,19 +128,34 @@ void Sequence::enableSteadyStep(bool value)
 	steadyStep =value;
 }
 
-void Block::reset(){}
-Block* Block::clone()
+seq::Timeout::Timeout(double timeSec, function<void(void)> timeoutHandler)
 {
-	Block *result = doClone();
-	//cout<<"cloning block("<<typeid(this).name()<<"->"<<typeid(result).name()<<")"<<endl;
-	if(typeid(result) != typeid(this))
-	{
-		cout<<"DoCloneNotImplmentedException"<<endl;
-		return nullptr;
-	}
-
-	return result;
+	timeElapsed = 0.0;
+	this->timeSec = timeSec;
+	this->timeoutHandler = timeoutHandler;
 }
+seq::Timeout::Timeout(double timeSec) : Timeout(timeSec, NULL){}
+seq::Timeout::Timeout() :Timeout(0.0) {}
+
+void Timeout::setTime(double timeSec) {this->timeSec = timeSec;}
+void seq::Timeout::setTimeoutHandler(function<void(void)> timeoutHandler)
+{
+	this->timeoutHandler = timeoutHandler;
+}
+void Timeout::reset() { timeElapsed = 0.0; }
+bool Timeout::addTime(double timeDelta)
+{
+	if (timeSec < 0.0) return false;
+	timeElapsed += timeDelta;
+	//cout << timeElapsed << "/" << timeSec << endl;
+	if (timeElapsed >= timeSec)
+	{
+		if (timeoutHandler != NULL) timeoutHandler();
+		return true;
+	}
+	return false;
+}
+
 
 block::Print::Print(const std::string& text)
 {
@@ -163,24 +168,21 @@ bool block::Print::spinOnce(SpinInfo spinInfo)
 	return true;
 }
 void block::Print::reset(){}
-Block* block::Print::doClone(){return new Print(text);}
 
-block::Delay::Delay(int timeSeconds)
+seq::block::Delay::Delay(double timeSeconds)
 {
-	this->timeSeconds = timeSeconds;
-	this->timeElapsed = 0;
+	timeout.setTime(timeSeconds);
 }
 
-bool block::Delay::spinOnce(SpinInfo spinInfo)
+bool seq::block::Delay::spinOnce(SpinInfo spinInfo)
 {
-	timeElapsed += spinInfo.timeDelta.count();
-	return (timeElapsed > timeSeconds);
+	return timeout.addTime(spinInfo.timeDelta);
 }
-void block::Delay::reset()
+
+void seq::block::Delay::reset()
 {
-	timeElapsed = 0;
+	timeout.reset();
 }
-Block* block::Delay::doClone(){return new Delay(timeSeconds);}
 
 block::Function::Function(function<void(void)> func)
 {
@@ -192,18 +194,27 @@ bool block::Function::spinOnce(SpinInfo spinInfo)
 	return true;
 }
 void block::Function::reset(){}
-Block* block::Function::doClone(){return new Function(func);}
 
-block::WaitFor::WaitFor(function<bool(void)> func)
+seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler)
 {
-	this->func = func;
+	this->breakCondition = breakCondition;
+	this->timeout.setTime(timeout);
+	this->timeout.setTimeoutHandler(timeoutHandler);
 }
+seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout) :WaitFor(breakCondition, timeout, NULL){}
+
+block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0){}
+
 bool block::WaitFor::spinOnce(SpinInfo spinInfo)
 {
-	return func();
+	if (timeout.addTime(spinInfo.timeDelta))
+	{
+		return true;
+	}
+	
+	return breakCondition();
 }
 void block::WaitFor::reset(){}
-Block* block::WaitFor::doClone(){return new WaitFor(func);}
 
 block::SequenceBlock::SequenceBlock(Sequence *sequence)
 {
@@ -223,7 +234,30 @@ void block::SequenceBlock::reset()
     sequence->reset();
     sequence->start();
 }
-Block* block::SequenceBlock::doClone()
+
+seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler) : SequenceBlock(sequence)
 {
-	return new SequenceBlock(sequence);
+	this->breakCondition = breakCondition;
+	this->timeout.setTime(timeout);
+	this->timeout.setTimeoutHandler(timeoutHandler);
+}
+
+seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout) : LoopSequence(sequence, breakCondition, timeout, NULL) {}
+
+block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition) : LoopSequence(sequence, breakCondition, -1.0) {}
+
+bool block::LoopSequence::spinOnce(SpinInfo spinInfo)
+{
+	if (timeout.addTime(spinInfo.timeDelta))
+	{
+		return true;//tined out. forced finish
+	}
+	if (sequence->spinOnce())//inner sequence finished
+	{
+		sequence->reset();
+		sequence->start();
+
+		return breakCondition();
+	}
+	return false;
 }
