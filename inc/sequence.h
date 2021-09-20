@@ -13,53 +13,82 @@ using namespace std;
 
 namespace seq
 {
+class Sequence;
+
 class Block
 {
 private:
+protected:
+	Sequence* containerSequence;
 public:
+	void printDebugMsg();
 	struct SpinInfo
 	{
 		double timeDelta;
 	};
+	Block();
+	void setContainerSequence(Sequence* sequence);
 	virtual bool spinOnce(SpinInfo spinInfo) = 0;	//returns true when block is 'finished' and good to move on to the next block.
 	virtual void reset() = 0;	//Sequence calls reset() and resets the block before moving on to the next one to make sure it can be used again.
 	virtual void notifyStart() = 0;
+	virtual string getBlockDescription();
 };
 
 class Sequence
 {
 private:
 	vector<Block*> blockList;
+	string name;
+	bool debug;
+	bool isMaster;
 	int currentStep;
 	bool running;
 	bool finished;
 	bool steadyStep;
 	int requestedStep;
+	unsigned int hierarchyLevel;
 	chrono::system_clock::time_point timeLastUpdate;
 
 	//Recurse through variadic arguments.
 	template <typename... BlockPtrs>
+	void addArgs(string name, BlockPtrs... blockPtrs)
+	{
+		this->name = name;
+		addArgs(blockPtrs...);
+	}
+	template <typename... BlockPtrs>
 	void addArgs(Block* blockPtr, BlockPtrs... blockPtrs)
 	{
-		blockList.push_back(blockPtr);
+		add(blockPtr);
 		addArgs(blockPtrs...);
 	}
 	//End of recursion. Push final argument.
 	void addArgs(Block* blockPtr)
 	{
-		blockList.push_back(blockPtr);
+		add(blockPtr);
 		return; 
 	}
 public:
-	Sequence();
 	template <typename... BlockPtrs>
-	Sequence(BlockPtrs... blockPtrs):Sequence()
+	Sequence(BlockPtrs... blockPtrs)
 	{
+		timeLastUpdate = chrono::system_clock::now();
+		currentStep = 0;
+		finished = false;
+		running = false;
+		steadyStep = false;
+		requestedStep = 0;
+		hierarchyLevel = 0;
+		isMaster = true;
   		addArgs(blockPtrs...);
 	}
 
 	~Sequence();
 
+	void setHierarchyLevel(unsigned int value);
+	void setIsMaster(bool value) {isMaster = value; }
+	string geName() { return name; }
+	unsigned int getHierarchyLevel();
 	void add(Block* block);
 	void clear();
 	bool spinOnce();	//update ongoing block or advance to the next one. Returns true when the sequence is finished.
@@ -113,6 +142,7 @@ public:
 	virtual void notifyStart(){}
 	virtual bool spinOnce(SpinInfo spinInfo);
 	virtual void reset();
+	virtual string getBlockDescription() { return string("Delay(")+to_string(timeout.getTimeSec())+string(")"); }
 };
 
 class Function : public Block
@@ -143,15 +173,15 @@ public:
 class SequenceBlock : public Block
 {
 private:
-
 protected:
 	Sequence* sequence;
 public:
 	SequenceBlock(Sequence *sequence);
 	~SequenceBlock();
-	virtual void notifyStart(){sequence->start();}
+	virtual void notifyStart();
 	virtual bool spinOnce(SpinInfo spinInfo);
 	virtual void reset();
+	virtual string getBlockDescription() { return string("Sequence(") + sequence->geName() + string(")"); }
 };
 
 class LoopSequence : public SequenceBlock

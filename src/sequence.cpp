@@ -2,14 +2,27 @@
 
 using namespace seq;
 
-Sequence::Sequence()
+void seq::Block::printDebugMsg()
 {
-	timeLastUpdate = chrono::system_clock::now();
-	currentStep = 0;
-	finished = false;
-	running = false;
-	steadyStep = false;
-	requestedStep = 0;
+	cout << "|";
+	for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
+	cout << "___";
+	cout << " " <<getBlockDescription()<< endl;
+}
+
+seq::Block::Block()
+{
+	containerSequence = nullptr;
+}
+
+void seq::Block::setContainerSequence(Sequence* sequence)
+{
+	containerSequence = sequence;
+}
+
+string seq::Block::getBlockDescription()
+{
+	return string("Block(") + typeid(*this).name() + string(")");
 }
 
 Sequence::~Sequence()
@@ -17,9 +30,20 @@ Sequence::~Sequence()
 	clear();
 }
 
+void seq::Sequence::setHierarchyLevel(unsigned int value)
+{
+	hierarchyLevel = value;
+}
+
+unsigned int seq::Sequence::getHierarchyLevel()
+{
+	return hierarchyLevel;
+}
+
 void Sequence::add(Block* block)
 {
 	blockList.push_back(block);
+	block->setContainerSequence(this);
 }
 
 void Sequence::clear()
@@ -30,7 +54,6 @@ void Sequence::clear()
 		delete(block);
 	}
 	blockList.clear();
-	blockList.resize(0);
 	currentStep = 0;
 }
 
@@ -39,23 +62,8 @@ bool Sequence::spinOnce()
 	//cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
 	if(!running) return false;
 
-#ifdef SEQUENCE_ROS_ENV
-	while(ros::ok)	//enable ros node shutdown using ctrl+c in terminal
-#else
 	while(true)
-#endif
 	{
-		//Check for end of the sequence.
-		if(blockList.empty() || currentStep == blockList.size())
-		{
-			reset();
-			finished = true;
-			//cout<<"end of sequence"<<endl;
-			return true;
-		}
-
-		//Prpcess a block.
-
 		//Calculate time duration since last spin.
 		chrono::duration<double> timeUpdateDelta = chrono::system_clock::now() - timeLastUpdate;
 		timeLastUpdate = chrono::system_clock::now();
@@ -65,11 +73,23 @@ bool Sequence::spinOnce()
 		requestedStep = 1;
 		if(blockList[currentStep]->spinOnce(spinInfo))
 		{
-			blockList[currentStep]->reset();
 			//step
 			currentStep += requestedStep;
 			//notify start of the block
-			if(currentStep < blockList.size()) blockList[currentStep]->notifyStart();
+			if ((size_t)currentStep < blockList.size())
+			{
+				blockList[currentStep]->printDebugMsg();
+				blockList[currentStep]->reset();
+				blockList[currentStep]->notifyStart();
+			}
+			//Check for end of the sequence.
+			else
+			{
+				reset();
+				finished = true;
+				if (isMaster)cout << "|"<<endl<<string("Sequence terminated.(") + name + string(")") << endl;
+				return true;
+			}
 		}
 		else
 		{
@@ -93,8 +113,12 @@ void Sequence::start()
 {
 	if(!blockList.empty())
 	{
+		if (isMaster)cout << string("Sequence started.(") + name + string(")") << endl<<"|" << endl;
+
 		running = true;
 		finished = false;
+		blockList[0]->printDebugMsg();
+		blockList[0]->reset();
 		blockList[0]->notifyStart();
 	}
 }
@@ -176,7 +200,12 @@ seq::block::Delay::Delay(double timeSeconds)
 
 bool seq::block::Delay::spinOnce(SpinInfo spinInfo)
 {
-	return timeout.addTime(spinInfo.timeDelta);
+	if (timeout.addTime(spinInfo.timeDelta))
+	{
+		cout << "timeout" << endl;
+		return true;
+	}
+	return false;
 }
 
 void seq::block::Delay::reset()
@@ -219,11 +248,17 @@ void block::WaitFor::reset(){}
 block::SequenceBlock::SequenceBlock(Sequence *sequence)
 {
     this->sequence = sequence;
-	sequence = nullptr;
+	sequence->setIsMaster(false);
 }
 block::SequenceBlock::~SequenceBlock()
 {
-	if(sequence != nullptr) delete(sequence);
+	delete(sequence);
+}
+
+void seq::block::SequenceBlock::notifyStart()
+{
+	sequence->setHierarchyLevel(containerSequence->getHierarchyLevel()+1);
+	sequence->start();
 }
 bool block::SequenceBlock::spinOnce(SpinInfo spinInfo)
 {
@@ -232,7 +267,6 @@ bool block::SequenceBlock::spinOnce(SpinInfo spinInfo)
 void block::SequenceBlock::reset()
 {
     sequence->reset();
-    sequence->start();
 }
 
 seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler) : SequenceBlock(sequence)
@@ -244,9 +278,9 @@ seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> 
 
 seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout) : LoopSequence(sequence, breakCondition, timeout, NULL) {}
 
-block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition) : LoopSequence(sequence, breakCondition, -1.0) {}
+seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition) : LoopSequence(sequence, breakCondition, -1.0) {}
 
-bool block::LoopSequence::spinOnce(SpinInfo spinInfo)
+bool seq::block::LoopSequence::spinOnce(SpinInfo spinInfo)
 {
 	if (timeout.addTime(spinInfo.timeDelta))
 	{
