@@ -7,29 +7,29 @@ using namespace std;
 
 namespace seq
 {
-    class Timeout
-            {
-    private:
-        double timeSec;
-        double timeElapsed;
-        function<void(void)> timeoutHandler;
-        bool timeoutHandlerAvailable;
-    public:
-        Timeout(double timeSec, function<void(void)> timeoutHandler);
+class Timeout
+{
+private:
+    double timeSec;
+    double timeElapsed;
+    function<void(void)> timeoutHandler;
+    bool timeoutHandlerAvailable;
+public:
+    Timeout(double timeSec, function<void(void)> timeoutHandler);
 
-        Timeout(double timeSec);
+    Timeout(double timeSec);
 
-        Timeout();
+    Timeout();
 
-        void setTime(double timeSec);
+    void setTime(double timeSec);
 
-        void setTimeoutHandler(function<void(void)> timeoutHandler);
+    void setTimeoutHandler(function<void(void)> timeoutHandler);
 
-        void reset();
+    void reset();
 
-        bool addTime(double timeDelta);
+    bool addTime(double timeDelta);
 
-        double getTimeSec() { return timeSec; }
-    };
+    double getTimeSec() { return timeSec; }
+};
 }
 #endif //SEQUENCE_UTIL_H

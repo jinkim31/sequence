@@ -4,143 +4,147 @@ using namespace seq;
 
 Sequence::~Sequence()
 {
-	clear();
+  clear();
 }
 
 void seq::Sequence::setHierarchyLevel(unsigned int value)
 {
-	hierarchyLevel = value;
+  hierarchyLevel = value;
 }
 
 unsigned int seq::Sequence::getHierarchyLevel()
 {
-	return hierarchyLevel;
+  return hierarchyLevel;
 }
 
-void Sequence::add(Block* block)
+void Sequence::add(Block *block)
 {
-	blockList.push_back(block);
-	block->setContainerSequence(this);
+  if (!isCompiled) {
+    throw InvalidOperation("Can't add blocks to already compiled sequence.");
+  }
+  blockList.push_back(block);
 }
 
 void Sequence::clear()
 {
-	//cout<<"clearing sequence"<<endl;
-	for(Block* block : blockList)
-	{
-		delete(block);
-	}
-	blockList.clear();
-	currentStep = 0;
+  //cout<<"clearing sequence"<<endl;
+  for (Block *block: blockList) {
+    delete (block);
+  }
+  blockList.clear();
+  currentStep = 0;
+}
+
+bool Sequence::spinOnce(SpinInfo spinInfo)
+{
+  while (true) {
+    if (blockList[currentStep]->spinOnce(spinInfo)) {
+      //step
+      currentStep++;
+      //reset the block, call callback
+      if ((size_t) currentStep < blockList.size()) {
+        blockList[currentStep]->printDebug(blockList[currentStep]->generateDebugName(), true);
+        blockList[currentStep]->reset();
+        blockList[currentStep]->startCallback();
+      }
+        //Check for end of the sequence.
+      else {
+        stop();
+        finished = true;
+        if (isOrigin)cout << string("Sequence terminated.(") + name + string(")") << endl;
+        return true;
+      }
+    } else {
+      //return when false returned.
+      return false;
+    }
+
+    //exit loop.
+    if (steadyStep) break;
+  }
+
+  return false;
 }
 
 bool Sequence::spinOnce()
 {
-	//cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
-	if(!running) return false;
+  //cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
+  if (!running) return false;
 
-	while(true)
-	{
-		//Calculate time duration since last spin.
-		chrono::duration<double> timeUpdateDelta = chrono::system_clock::now() - timeLastUpdate;
-		timeLastUpdate = chrono::system_clock::now();
-		Block::SpinInfo spinInfo;
-		spinInfo.timeDelta = timeUpdateDelta.count();
+  //Calculate time duration since last spin.
+  chrono::duration<double> timeUpdateDelta = chrono::system_clock::now() - timeLastUpdate;
+  timeLastUpdate = chrono::system_clock::now();
+  SpinInfo spinInfo;
+  spinInfo.timeDelta = timeUpdateDelta.count();
 
-		requestedStep = 1;
-		if(blockList[currentStep]->spinOnce(spinInfo))
-		{
-			//step
-			currentStep += requestedStep;
-			//notify start of the block
-			if ((size_t)currentStep < blockList.size())
-			{
-				blockList[currentStep]->printDebugMsg();
-				blockList[currentStep]->reset();
-				blockList[currentStep]->notifyStart();
-			}
-			//Check for end of the sequence.
-			else
-			{
-				reset();
-				finished = true;
-				if (isOrigin)cout << string("Sequence terminated.(") + name + string(")") << endl;
-				return true;
-			}
-		}
-		else
-		{
-			//return when false returned.
-			return false;
-		}
-
-		//exit loop.
-		if(steadyStep) break;
-	}
-
-	return false;
-}
-
-void Sequence::step(int value)
-{
-	requestedStep += value;
+  return spinOnce(spinInfo);
 }
 
 void Sequence::start()
 {
-	if(!blockList.empty())
-	{
-		if (isOrigin)cout << string("Sequence started.(") + name + string(")") << endl;
+  if (!blockList.empty()) {
+    if (isOrigin)cout << string("Sequence started.(") + name + string(")") << endl;
 
-		running = true;
-		finished = false;
-		blockList[0]->printDebugMsg();
-		blockList[0]->reset();
-		blockList[0]->notifyStart();
-	}
+    running = true;
+    finished = false;
+    blockList[0]->printDebug(blockList[currentStep]->generateDebugName(), true);
+    blockList[0]->reset();
+    blockList[0]->startCallback();
+  }
 }
+
 void Sequence::suspend()
 {
-	running = false;
+  running = false;
 }
-void Sequence::reset()
+
+void Sequence::stop()
 {
-	running = false;
-	currentStep = 0;
-	blockList[currentStep]->reset();
-    timeLastUpdate = chrono::system_clock::now();
+  running = false;
+  currentStep = 0;
 }
 
 bool Sequence::isRunning()
 {
-	return running;
+  return running;
 }
 
 bool Sequence::isFinished()
 {
-	return finished;
-}
-void Sequence::insertInitiator()
-{
-
+  return finished;
 }
 
 void Sequence::enableSteadyStep(bool value)
 {
-	steadyStep =value;
+  steadyStep = value;
 }
 
-void Sequence::compile()
+void Sequence::compile(bool debug)
 {
-
+  this->debug = debug;
+  for (Block *block: blockList) {
+    block->setContainerSequence(this);
+    block->compile(debug);
+  }
 }
 
-void seq::Block::printDebugMsg()
+bool Sequence::debugEnabled()
 {
+  return debug;
+}
+
+void seq::Block::printDebug(string msg, bool line)
+{
+  if (!containerSequence->debugEnabled()) return;
   cout << "|";
-  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
-  cout << "___";
-  cout << " " <<getBlockDescription()<< endl;
+  /*when this function is used in a lambda expression that is passed as constructor's parameter, It captures 'this' as block that is one level lower than expected.
+   * (so this->printDebug("") prints debug message at one hierarchy lower than I would like.)
+   * !line==1 when line is false. It's a little trick to print in-algorithm debug messages in the right hierarchy level.
+   */
+  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel() + !line; i++) cout << " |";
+  if (line)cout << "___";
+  else cout << "   ";
+  cout << msg << endl;
 }
 
 seq::Block::Block()
@@ -148,12 +152,22 @@ seq::Block::Block()
   containerSequence = nullptr;
 }
 
-void seq::Block::setContainerSequence(Sequence* sequence)
-{
-  containerSequence = sequence;
-}
-
-string seq::Block::getBlockDescription()
+string seq::Block::generateDebugName()
 {
   return string("Block(") + typeid(*this).name() + string(")");
+}
+
+void Block::compile(bool debug)
+{
+
+}
+
+void Block::setContainerSequence(Sequence *sequence)
+{
+  this->containerSequence = sequence;
+}
+
+void Block::startCallback()
+{
+
 }
