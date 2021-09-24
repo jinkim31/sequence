@@ -2,29 +2,6 @@
 
 using namespace seq;
 
-void seq::Block::printDebugMsg()
-{
-	cout << "|";
-	for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
-	cout << "___";
-	cout << " " <<getBlockDescription()<< endl;
-}
-
-seq::Block::Block()
-{
-	containerSequence = nullptr;
-}
-
-void seq::Block::setContainerSequence(Sequence* sequence)
-{
-	containerSequence = sequence;
-}
-
-string seq::Block::getBlockDescription()
-{
-	return string("Block(") + typeid(*this).name() + string(")");
-}
-
 Sequence::~Sequence()
 {
 	clear();
@@ -87,7 +64,7 @@ bool Sequence::spinOnce()
 			{
 				reset();
 				finished = true;
-				if (isMaster)cout << "|"<<endl<<string("Sequence terminated.(") + name + string(")") << endl;
+				if (isOrigin)cout << string("Sequence terminated.(") + name + string(")") << endl;
 				return true;
 			}
 		}
@@ -113,7 +90,7 @@ void Sequence::start()
 {
 	if(!blockList.empty())
 	{
-		if (isMaster)cout << string("Sequence started.(") + name + string(")") << endl<<"|" << endl;
+		if (isOrigin)cout << string("Sequence started.(") + name + string(")") << endl;
 
 		running = true;
 		finished = false;
@@ -131,6 +108,7 @@ void Sequence::reset()
 	running = false;
 	currentStep = 0;
 	blockList[currentStep]->reset();
+    timeLastUpdate = chrono::system_clock::now();
 }
 
 bool Sequence::isRunning()
@@ -152,146 +130,30 @@ void Sequence::enableSteadyStep(bool value)
 	steadyStep =value;
 }
 
-seq::Timeout::Timeout(double timeSec, function<void(void)> timeoutHandler)
+void Sequence::compile()
 {
-	timeElapsed = 0.0;
-	this->timeSec = timeSec;
-	this->timeoutHandler = timeoutHandler;
-}
-seq::Timeout::Timeout(double timeSec) : Timeout(timeSec, NULL){}
-seq::Timeout::Timeout() :Timeout(0.0) {}
 
-void Timeout::setTime(double timeSec) {this->timeSec = timeSec;}
-void seq::Timeout::setTimeoutHandler(function<void(void)> timeoutHandler)
-{
-	this->timeoutHandler = timeoutHandler;
-}
-void Timeout::reset() { timeElapsed = 0.0; }
-bool Timeout::addTime(double timeDelta)
-{
-	if (timeSec < 0.0) return false;
-	timeElapsed += timeDelta;
-	//cout << timeElapsed << "/" << timeSec << endl;
-	if (timeElapsed >= timeSec)
-	{
-		if (timeoutHandler != NULL) timeoutHandler();
-		return true;
-	}
-	return false;
 }
 
-
-block::Print::Print(const std::string& text)
+void seq::Block::printDebugMsg()
 {
-	this->text = text;
-	this->text = text;
-}
-bool block::Print::spinOnce(SpinInfo spinInfo)
-{
-	cout << text << endl;
-	return true;
-}
-void block::Print::reset(){}
-
-seq::block::Delay::Delay(double timeSeconds)
-{
-	timeout.setTime(timeSeconds);
+  cout << "|";
+  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
+  cout << "___";
+  cout << " " <<getBlockDescription()<< endl;
 }
 
-bool seq::block::Delay::spinOnce(SpinInfo spinInfo)
+seq::Block::Block()
 {
-	if (timeout.addTime(spinInfo.timeDelta))
-	{
-		cout << "timeout" << endl;
-		return true;
-	}
-	return false;
+  containerSequence = nullptr;
 }
 
-void seq::block::Delay::reset()
+void seq::Block::setContainerSequence(Sequence* sequence)
 {
-	timeout.reset();
+  containerSequence = sequence;
 }
 
-block::Function::Function(function<void(void)> func)
+string seq::Block::getBlockDescription()
 {
-	this->func = func;
-}
-bool block::Function::spinOnce(SpinInfo spinInfo)
-{
-	func();
-	return true;
-}
-void block::Function::reset(){}
-
-seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler)
-{
-	this->breakCondition = breakCondition;
-	this->timeout.setTime(timeout);
-	this->timeout.setTimeoutHandler(timeoutHandler);
-}
-seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout) :WaitFor(breakCondition, timeout, NULL){}
-
-block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0){}
-
-bool block::WaitFor::spinOnce(SpinInfo spinInfo)
-{
-	if (timeout.addTime(spinInfo.timeDelta))
-	{
-		return true;
-	}
-	
-	return breakCondition();
-}
-void block::WaitFor::reset(){}
-
-block::SequenceBlock::SequenceBlock(Sequence *sequence)
-{
-    this->sequence = sequence;
-	sequence->setIsMaster(false);
-}
-block::SequenceBlock::~SequenceBlock()
-{
-	delete(sequence);
-}
-
-void seq::block::SequenceBlock::notifyStart()
-{
-	sequence->setHierarchyLevel(containerSequence->getHierarchyLevel()+1);
-	sequence->start();
-}
-bool block::SequenceBlock::spinOnce(SpinInfo spinInfo)
-{
-    return sequence->spinOnce();
-}
-void block::SequenceBlock::reset()
-{
-    sequence->reset();
-}
-
-seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler) : SequenceBlock(sequence)
-{
-	this->breakCondition = breakCondition;
-	this->timeout.setTime(timeout);
-	this->timeout.setTimeoutHandler(timeoutHandler);
-}
-
-seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition, double timeout) : LoopSequence(sequence, breakCondition, timeout, NULL) {}
-
-seq::block::LoopSequence::LoopSequence(Sequence* sequence, function<bool(void)> breakCondition) : LoopSequence(sequence, breakCondition, -1.0) {}
-
-bool seq::block::LoopSequence::spinOnce(SpinInfo spinInfo)
-{
-	if (timeout.addTime(spinInfo.timeDelta))
-	{
-		return true;//tined out. forced finish
-	}
-	if (sequence->spinOnce())//inner sequence finished
-	{
-		sequence->reset();
-		sequence->start();
-
-		return breakCondition();
-	}
-	return false;
+  return string("Block(") + typeid(*this).name() + string(")");
 }

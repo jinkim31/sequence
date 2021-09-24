@@ -1,6 +1,5 @@
-/*
-This library contains custom Sequence blocks for navigation.
-*/
+#ifndef _SEQUENCE_ROS_H
+#define _SEQUENCE_ROS_H
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -167,3 +166,5 @@ public:
 };
 
 }
+
+#endif
