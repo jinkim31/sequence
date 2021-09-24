@@ -82,6 +82,7 @@ public:
     virtual string generateDebugName();
 
     virtual void compile(bool debug) final;
+    virtual void print() final;
 };
 
 class LoopSequence : public SequenceBlock
@@ -97,6 +98,8 @@ public:
     LoopSequence(Sequence *sequence, function<bool(void)> breakCondition);
 
     virtual bool spinOnce(SpinInfo spinInfo);
+
+    virtual string generateDebugName();
 };
 
 }

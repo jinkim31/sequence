@@ -78,6 +78,7 @@ public:
       steadyStep = false;
       hierarchyLevel = 0;
       isOrigin = true;
+      isCompiled = false;
       name = "unnamed sequence";
       addArgs(blockPtrs...);
     }
@@ -109,6 +110,8 @@ public:
     void enableSteadyStep(bool value);
 
     bool debugEnabled();
+
+    void print();
 };
 
 class Block
@@ -129,6 +132,7 @@ public:
     virtual void reset() = 0;  //Sequence calls reset() before processing each block.
     virtual void startCallback(); //callback that is called once when the block is starting.
     virtual void compile(bool debug);
+    virtual void print();
 };
 }
 #endif

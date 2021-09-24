@@ -103,6 +103,12 @@ void seq::block::SequenceBlock::compile(bool debug)
 
 string seq::block::SequenceBlock::generateDebugName() { return string("Sequence(") + sequence->geName() + string(")"); }
 
+void seq::block::SequenceBlock::print()
+{
+  printDebug(generateDebugName(), true);
+  sequence->print();
+}
+
 seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler) : SequenceBlock(sequence)
 {
   this->breakCondition = breakCondition;
@@ -127,4 +133,9 @@ bool seq::block::LoopSequence::spinOnce(SpinInfo spinInfo)
     return breakCondition();
   }
   return false;
+}
+
+string seq::block::LoopSequence::generateDebugName()
+{
+  return string("Loop(") + sequence->geName() + string(")");
 }

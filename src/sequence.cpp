@@ -19,7 +19,7 @@ unsigned int seq::Sequence::getHierarchyLevel()
 
 void Sequence::add(Block *block)
 {
-  if (!isCompiled) {
+  if (isCompiled) {
     throw InvalidOperation("Can't add blocks to already compiled sequence.");
   }
   blockList.push_back(block);
@@ -133,6 +133,17 @@ bool Sequence::debugEnabled()
   return debug;
 }
 
+void Sequence::print()
+{
+  //if(isOrigin && !isCompiled) throw InvalidOperation("compile before print.");
+  if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
+  for(Block* block : blockList)
+  {
+    block->print();
+  }
+  if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
+}
+
 void seq::Block::printDebug(string msg, bool line)
 {
   if (!containerSequence->debugEnabled()) return;
@@ -170,4 +181,8 @@ void Block::setContainerSequence(Sequence *sequence)
 void Block::startCallback()
 {
 
+}
+void Block::print()
+{
+  printDebug(generateDebugName(), true);
 }
