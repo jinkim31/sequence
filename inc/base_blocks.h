@@ -17,7 +17,7 @@ private:
 public:
     Print(const std::string &text);
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
 };
@@ -29,7 +29,7 @@ private:
 public:
     Delay(double timeSeconds);
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
 
@@ -43,7 +43,7 @@ private:
 public:
     Function(function<void(void)> func);
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
 };
@@ -60,7 +60,7 @@ public:
 
     WaitFor(function<bool(void)> breakCondition);
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
 };
@@ -75,13 +75,13 @@ public:
 
     ~SequenceBlock();
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
 
     virtual string generateDebugName();
 
-    virtual void compile(bool debug) final;
+    virtual void init(bool debug) final;
     virtual void print() final;
 };
 
@@ -97,7 +97,7 @@ public:
 
     LoopSequence(Sequence *sequence, function<bool(void)> breakCondition);
 
-    virtual bool spinOnce(SpinInfo spinInfo);
+    virtual bool update(SpinInfo spinInfo);
 
     virtual string generateDebugName();
 };

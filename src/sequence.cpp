@@ -2,6 +2,8 @@
 
 using namespace seq;
 
+vector<Sequence*> Sequence::sequenceList;
+
 Sequence::~Sequence()
 {
   clear();
@@ -35,10 +37,10 @@ void Sequence::clear()
   currentStep = 0;
 }
 
-bool Sequence::spinOnce(SpinInfo spinInfo)
+bool Sequence::update(SpinInfo spinInfo)
 {
   while (true) {
-    if (blockList[currentStep]->spinOnce(spinInfo)) {
+    if (blockList[currentStep]->update(spinInfo)) {
       //step
       currentStep++;
       //reset the block, call callback
@@ -66,7 +68,7 @@ bool Sequence::spinOnce(SpinInfo spinInfo)
   return false;
 }
 
-bool Sequence::spinOnce()
+bool Sequence::update()
 {
   //cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
   if (!running) return false;
@@ -77,7 +79,7 @@ bool Sequence::spinOnce()
   SpinInfo spinInfo;
   spinInfo.timeDelta = timeUpdateDelta.count();
 
-  return spinOnce(spinInfo);
+  return update(spinInfo);
 }
 
 void Sequence::start()
@@ -119,13 +121,20 @@ void Sequence::enableSteadyStep(bool value)
   steadyStep = value;
 }
 
-void Sequence::compile(bool debug)
+void Sequence::init(bool debug)
 {
-  this->debug = debug;
-  for (Block *block: blockList) {
-    block->setContainerSequence(this);
-    block->compile(debug);
+  if(isCompiled)
+  {
+    throw InvalidOperation("Sequence already compiled.");
   }
+
+  this->debug = debug;
+  for (Block *block: blockList)
+  {
+    block->setContainerSequence(this);
+    block->init(debug);
+  }
+  isCompiled = true;
 }
 
 bool Sequence::debugEnabled()
@@ -135,7 +144,7 @@ bool Sequence::debugEnabled()
 
 void Sequence::print()
 {
-  //if(isOrigin && !isCompiled) throw InvalidOperation("compile before print.");
+  //if(isOrigin && !isCompiled) throw InvalidOperation("init before print.");
   if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
   for(Block* block : blockList)
   {
@@ -144,17 +153,40 @@ void Sequence::print()
   if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
 }
 
+void Sequence::spinOnce()
+{
+  for(Sequence* sequence : sequenceList)
+  {
+    if(sequence->update())
+    {
+
+    }
+  }
+}
+
+void Sequence::compile(bool debug)
+{
+  this->isOrigin = true;
+  Sequence::sequenceList.push_back(this);
+  init(debug);
+}
+
 void seq::Block::printDebug(string msg, bool line)
 {
   if (!containerSequence->debugEnabled()) return;
   cout << "|";
-  /*when this function is used in a lambda expression that is passed as constructor's parameter, It captures 'this' as block that is one level lower than expected.
-   * (so this->printDebug("") prints debug message at one hierarchy lower than I would like.)
-   * !line==1 when line is false. It's a little trick to print in-algorithm debug messages in the right hierarchy level.
-   */
-  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel() + !line; i++) cout << " |";
+  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
   if (line)cout << "___";
   else cout << "   ";
+  cout << msg << endl;
+}
+
+void Block::printDebugInline(string msg)
+{
+  if (!containerSequence->debugEnabled()) return;
+  cout << "|";
+  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel()+1; i++) cout << " |";
+  cout << "   ";
   cout << msg << endl;
 }
 
@@ -168,7 +200,7 @@ string seq::Block::generateDebugName()
   return string("Block(") + typeid(*this).name() + string(")");
 }
 
-void Block::compile(bool debug)
+void Block::init(bool debug)
 {
 
 }

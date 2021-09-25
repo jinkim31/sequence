@@ -6,7 +6,7 @@ seq::block::Print::Print(const std::string &text)
   this->text = text;
 }
 
-bool seq::block::Print::spinOnce(SpinInfo spinInfo)
+bool seq::block::Print::update(SpinInfo spinInfo)
 {
   cout << text << endl;
   return true;
@@ -19,7 +19,7 @@ seq::block::Delay::Delay(double timeSeconds)
   timeout.setTime(timeSeconds);
 }
 
-bool seq::block::Delay::spinOnce(SpinInfo spinInfo)
+bool seq::block::Delay::update(SpinInfo spinInfo)
 {
   if (timeout.addTime(spinInfo.timeDelta)) {
     return true;
@@ -42,7 +42,7 @@ seq::block::Function::Function(function<void(void)> func)
   this->func = func;
 }
 
-bool seq::block::Function::spinOnce(SpinInfo spinInfo)
+bool seq::block::Function::update(SpinInfo spinInfo)
 {
   func();
   return true;
@@ -62,7 +62,7 @@ seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout
 
 seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0) {}
 
-bool seq::block::WaitFor::spinOnce(SpinInfo spinInfo)
+bool seq::block::WaitFor::update(SpinInfo spinInfo)
 {
   if (timeout.addTime(spinInfo.timeDelta)) {
     return true;
@@ -84,9 +84,9 @@ seq::block::SequenceBlock::~SequenceBlock()
   delete (sequence);
 }
 
-bool seq::block::SequenceBlock::spinOnce(SpinInfo spinInfo)
+bool seq::block::SequenceBlock::update(SpinInfo spinInfo)
 {
-  return sequence->spinOnce(spinInfo);
+  return sequence->update(spinInfo);
 }
 
 void seq::block::SequenceBlock::reset()
@@ -95,10 +95,10 @@ void seq::block::SequenceBlock::reset()
   sequence->start();
 }
 
-void seq::block::SequenceBlock::compile(bool debug)
+void seq::block::SequenceBlock::init(bool debug)
 {
   sequence->setHierarchyLevel(containerSequence->getHierarchyLevel() + 1);
-  sequence->compile(debug);
+  sequence->init(debug);
 }
 
 string seq::block::SequenceBlock::generateDebugName() { return string("Sequence(") + sequence->geName() + string(")"); }
@@ -120,12 +120,12 @@ seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> 
 
 seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition) : LoopSequence(sequence,breakCondition,-1.0) {}
 
-bool seq::block::LoopSequence::spinOnce(SpinInfo spinInfo)
+bool seq::block::LoopSequence::update(SpinInfo spinInfo)
 {
   if (timeout.addTime(spinInfo.timeDelta)) {
     return true;//tined out. forced finish
   }
-  if (sequence->spinOnce(spinInfo))//inner sequence finished
+  if (sequence->update(spinInfo))//inner sequence finished
   {
     sequence->stop();
     sequence->start();

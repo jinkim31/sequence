@@ -48,7 +48,7 @@ public:
 
     virtual void startCallback() {}
 
-    virtual bool spinOnce(SpinInfo spinInfo)
+    virtual bool update(SpinInfo spinInfo)
     {
       if (publisher.getNumSubscribers() == 0)
         ROS_WARN(
@@ -109,7 +109,7 @@ public:
 
     }
 
-    virtual bool spinOnce(SpinInfo spinInfo)
+    virtual bool update(SpinInfo spinInfo)
     {
       //if(subscriber.getNumPublishers()==0) ROS_WARN("[Sequence] Subscriber(%s %s) is not subscribing any publisher.\n", typeid(T).name(), topic.c_str());
       ros::spinOnce();

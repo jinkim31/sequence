@@ -67,6 +67,8 @@ private:
       add(blockPtr);
       return;
     }
+
+    static vector<Sequence*> sequenceList;
 public:
     template<typename... BlockPtrs>
     Sequence(BlockPtrs... blockPtrs)
@@ -77,41 +79,32 @@ public:
       running = false;
       steadyStep = false;
       hierarchyLevel = 0;
-      isOrigin = true;
+      isOrigin = false;
       isCompiled = false;
       name = "unnamed sequence";
       addArgs(blockPtrs...);
     }
     ~Sequence();
-
-    void compile(bool debug = false); //sets hierarchy for debug
+    void compile(bool debug = false);
+    void init(bool debug); //sets hierarchy for debug
     void setHierarchyLevel(unsigned int value);
-
     void setAsOrigin(bool value) { isOrigin = value; }
-
     string geName() { return name; }
-
     unsigned int getHierarchyLevel();
-
     void add(Block *block);
-
     void clear();
-
-    bool spinOnce();  //update ongoing block or advance to the next one. Returns true when the sequence is finished.
-    bool spinOnce(SpinInfo spinInfo);
-
+    bool update();  //update ongoing block or advance to the next one. Returns true when the sequence is finished.
+    bool update(SpinInfo spinInfo);
     void start();  //start or resume the sequence.
     void suspend();  //pause the sequence without resetting the progress.
     void stop();  //stop the sequence.
     bool isRunning();
-
     bool isFinished();
-
     void enableSteadyStep(bool value);
-
     bool debugEnabled();
-
     void print();
+
+    static void spinOnce();
 };
 
 class Block
@@ -119,7 +112,8 @@ class Block
 protected:
     Sequence *containerSequence;
 public:
-    void printDebug(string msg, bool line = false);
+    void printDebug(string msg, bool line = false); //print msg in the form of sequence debug
+    void printDebugInline(string msg);  //use this instead of printDebug() when printing in lambda passed as a function parameter
 
     Block();
 
@@ -127,11 +121,10 @@ public:
 
     virtual string generateDebugName();
 
-    virtual bool
-    spinOnce(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
+    virtual bool update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
     virtual void reset() = 0;  //Sequence calls reset() before processing each block.
     virtual void startCallback(); //callback that is called once when the block is starting.
-    virtual void compile(bool debug);
+    virtual void init(bool debug);
     virtual void print();
 };
 }
