@@ -46,7 +46,7 @@ World
 Sequence terminated(Main)
 ```
 
-### Sequence in sequence
+### Sequence in a sequence
 ```
 #include "Sequence/inc/sequence.h"
 #include <windows.h>
