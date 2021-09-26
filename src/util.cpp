@@ -30,3 +30,10 @@ bool seq::Timeout::addTime(double timeDelta)
   }
   return false;
 }
+
+double seq::Timeout::getTimeSec() { return timeSec; }
+
+double seq::Timeout::getTimeElapsed()
+{
+  return timeElapsed;
+}

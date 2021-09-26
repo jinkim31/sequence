@@ -29,7 +29,8 @@ public:
 
     bool addTime(double timeDelta);
 
-    double getTimeSec() { return timeSec; }
+    double getTimeSec();
+    double getTimeElapsed();
 };
 }
 #endif //SEQUENCE_UTIL_H

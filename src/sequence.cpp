@@ -1,220 +1,177 @@
 #include "../inc/sequence.h"
 
-using namespace seq;
-
-vector<Sequence*> Sequence::sequenceList;
-
-Sequence::~Sequence()
+seq::block::Print::Print(const std::string &text)
 {
-  clear();
+  this->text = text;
+  this->text = text;
 }
 
-void seq::Sequence::setHierarchyLevel(unsigned int value)
+bool seq::block::Print::update(SpinInfo spinInfo)
 {
-  hierarchyLevel = value;
+  cout << text << endl;
+  return true;
 }
 
-unsigned int seq::Sequence::getHierarchyLevel()
+void seq::block::Print::reset() {}
+
+string seq::block::Print::generateDebugName()
 {
-  return hierarchyLevel;
+  return "Print(" + text + ")";
 }
 
-void Sequence::add(Block *block)
+seq::block::Delay::Delay(double timeSeconds)
 {
-  if (isCompiled) {
-    throw InvalidOperation("Can't add blocks to already compiled sequence.");
+  timeout.setTime(timeSeconds);
+}
+
+bool seq::block::Delay::update(SpinInfo spinInfo)
+{
+  if (timeout.addTime(spinInfo.timeDelta)) {
+    return true;
   }
-  blockList.push_back(block);
+  return false;
 }
 
-void Sequence::clear()
+void seq::block::Delay::reset()
 {
-  //cout<<"clearing sequence"<<endl;
-  for (Block *block: blockList) {
-    delete (block);
+  timeout.reset();
+}
+
+string seq::block::Delay::generateDebugName()
+{
+  return string("Delay(") + to_string(timeout.getTimeSec()) + string(")");
+}
+
+seq::block::Function::Function(function<void(void)> func)
+{
+  this->func = func;
+}
+
+bool seq::block::Function::update(SpinInfo spinInfo)
+{
+  func();
+  return true;
+}
+
+void seq::block::Function::reset() {}
+
+string seq::block::Function::generateDebugName()
+{
+  return "Function";
+}
+
+seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler)
+{
+  this->breakCondition = breakCondition;
+  this->timeout.setTime(timeout);
+  this->timeout.setTimeoutHandler(timeoutHandler);
+}
+
+seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout) : WaitFor(breakCondition, timeout,
+                                                                                            NULL) {}
+
+seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0) {}
+
+bool seq::block::WaitFor::update(SpinInfo spinInfo)
+{
+  if (timeout.addTime(spinInfo.timeDelta))
+  {
+    Sequence::printDebug("timed out");
+    return true;
   }
-  blockList.clear();
-  currentStep = 0;
-}
 
-bool Sequence::update(SpinInfo spinInfo)
-{
-  while (true) {
-    if (blockList[currentStep]->update(spinInfo)) {
-      //step
-      currentStep++;
-      //reset the block, call callback
-      if ((size_t) currentStep < blockList.size()) {
-        blockList[currentStep]->printDebug(blockList[currentStep]->generateDebugName(), true);
-        blockList[currentStep]->reset();
-        blockList[currentStep]->startCallback();
-      }
-        //Check for end of the sequence.
-      else {
-        stop();
-        finished = true;
-        if (isOrigin)cout << string("Sequence terminated.(") + name + string(")") << endl;
-        return true;
-      }
-    } else {
-      //return when false returned.
-      return false;
-    }
-
-    //exit loop.
-    if (steadyStep) break;
+  if(breakCondition())
+  {
+    //Sequence::printDebug("condition met");
+    return true;
   }
 
   return false;
 }
 
-bool Sequence::update()
+void seq::block::WaitFor::reset()
 {
-  //cout<<"Running:"<<running<<" blocks:"<<currentStep<<"/"<<blockList.size()<<endl;
-  if (!running) return false;
-
-  //Calculate time duration since last spin.
-  chrono::duration<double> timeUpdateDelta = chrono::system_clock::now() - timeLastUpdate;
-  timeLastUpdate = chrono::system_clock::now();
-  SpinInfo spinInfo;
-  spinInfo.timeDelta = timeUpdateDelta.count();
-
-  return update(spinInfo);
+  timeout.reset();
 }
 
-void Sequence::start()
+string seq::block::WaitFor::generateDebugName()
 {
-  if (!blockList.empty()) {
-    if (isOrigin)cout << string("Sequence started.(") + name + string(")") << endl;
-
-    running = true;
-    finished = false;
-    blockList[0]->printDebug(blockList[currentStep]->generateDebugName(), true);
-    blockList[0]->reset();
-    blockList[0]->startCallback();
-  }
+  string name = "WaitFor(timeout:";
+  if(timeout.getTimeSec()<0) name+="none";
+  else name += to_string(timeout.getTimeSec());
+  name+=")";
+  return name;
 }
 
-void Sequence::suspend()
+seq::block::SequenceBlock::SequenceBlock(Sequence *sequence)
 {
-  running = false;
+  this->sequence = sequence;
+  sequence->setAsOrigin(false);
 }
 
-void Sequence::stop()
+seq::block::SequenceBlock::~SequenceBlock()
 {
-  running = false;
-  currentStep = 0;
+  delete (sequence);
 }
 
-bool Sequence::isRunning()
+bool seq::block::SequenceBlock::update(SpinInfo spinInfo)
 {
-  return running;
+  return sequence->update(spinInfo);
 }
 
-bool Sequence::isFinished()
+void seq::block::SequenceBlock::reset()
 {
-  return finished;
+  sequence->stop();
+  sequence->start();
 }
 
-void Sequence::enableSteadyStep(bool value)
+void seq::block::SequenceBlock::init(bool debug)
 {
-  steadyStep = value;
+  sequence->setHierarchyLevel(containerSequence->getHierarchyLevel() + 1);
+  sequence->init(debug);
 }
 
-void Sequence::init(bool debug)
+string seq::block::SequenceBlock::generateDebugName() { return string("Sequence(") + sequence->geName() + string(")"); }
+
+void seq::block::SequenceBlock::print()
 {
-  if(isCompiled)
+  Sequence::printDebug(generateDebugName(), true);
+  sequence->print();
+}
+
+seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler) : SequenceBlock(sequence)
+{
+  this->breakCondition = breakCondition;
+  this->timeout.setTime(timeout);
+  this->timeout.setTimeoutHandler(timeoutHandler);
+}
+
+seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout): LoopSequence(sequence, breakCondition, timeout, NULL) {}
+
+seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition) : LoopSequence(sequence,breakCondition,-1.0) {}
+
+bool seq::block::LoopSequence::update(SpinInfo spinInfo)
+{
+  if (timeout.addTime(spinInfo.timeDelta))
   {
-    throw InvalidOperation("Sequence already compiled.");
+    Sequence::printDebug("timed out");
+    return true;//tined out. forced finish
   }
-
-  this->debug = debug;
-  for (Block *block: blockList)
+  if (sequence->update(spinInfo))//inner sequence finished
   {
-    block->setContainerSequence(this);
-    block->init(debug);
+    sequence->stop();
+    sequence->start();
+
+    return breakCondition();
   }
-  isCompiled = true;
+  return false;
 }
 
-bool Sequence::debugEnabled()
+string seq::block::LoopSequence::generateDebugName()
 {
-  return debug;
-}
-
-void Sequence::print()
-{
-  //if(isOrigin && !isCompiled) throw InvalidOperation("init before print.");
-  if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
-  for(Block* block : blockList)
-  {
-    block->print();
-  }
-  if(isOrigin)cout << string("Origin(") + name + string(")") << endl;
-}
-
-void Sequence::spinOnce()
-{
-  for(Sequence* sequence : sequenceList)
-  {
-    if(sequence->update())
-    {
-
-    }
-  }
-}
-
-void Sequence::compile(bool debug)
-{
-  this->isOrigin = true;
-  Sequence::sequenceList.push_back(this);
-  init(debug);
-}
-
-void seq::Block::printDebug(string msg, bool line)
-{
-  if (!containerSequence->debugEnabled()) return;
-  cout << "|";
-  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel(); i++) cout << " |";
-  if (line)cout << "___";
-  else cout << "   ";
-  cout << msg << endl;
-}
-
-void Block::printDebugInline(string msg)
-{
-  if (!containerSequence->debugEnabled()) return;
-  cout << "|";
-  for (unsigned int i = 0; i < containerSequence->getHierarchyLevel()+1; i++) cout << " |";
-  cout << "   ";
-  cout << msg << endl;
-}
-
-seq::Block::Block()
-{
-  containerSequence = nullptr;
-}
-
-string seq::Block::generateDebugName()
-{
-  return string("Block(") + typeid(*this).name() + string(")");
-}
-
-void Block::init(bool debug)
-{
-
-}
-
-void Block::setContainerSequence(Sequence *sequence)
-{
-  this->containerSequence = sequence;
-}
-
-void Block::startCallback()
-{
-
-}
-void Block::print()
-{
-  printDebug(generateDebugName(), true);
+  string name = "Loop(sequence:" + sequence->geName()+", timeout:";
+  if(timeout.getTimeSec()<0) name += "none";
+  else name += to_string(timeout.getTimeSec());
+  name +=")";
+  return name;
 }

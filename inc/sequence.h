@@ -1,131 +1,114 @@
-#ifndef SEQUENCE_H
-#define SEQUENCE_H
+#ifndef SEQUENCE_SEQUENCE_H
+#define SEQUENCE_SEQUENCE_H
 
-#include <iostream>
-#include <vector>
-#include <tuple>
-#include <functional>
-#include <string>
-#include <cstdarg>
-#include <chrono>
-#include <stdexcept>
+#include "sequence_core.h"
+#include "util.h"
 
 using namespace std;
 
 namespace seq
 {
-
-/*Exceptions*/
-class InvalidOperation : runtime_error
+namespace block
 {
-public:
-    InvalidOperation(string msg) : runtime_error(msg.c_str()) {};
-};
-
-/*Structs*/
-struct SpinInfo
-{
-    double timeDelta;
-};
-
-/*Classes*/
-class Block;//forward declaration
-
-class Sequence
+class Print : public Block
 {
 private:
-    vector<Block *> blockList;
-    string name;
-    bool isOrigin;
-    int currentStep;
-    bool running;
-    bool finished;
-    bool steadyStep;
-    bool debug;
-    unsigned int hierarchyLevel;
-    bool isCompiled;
-    chrono::system_clock::time_point timeLastUpdate;
-
-    //Recurse through variadic arguments.
-    template<typename... BlockPtrs>
-    void addArgs(string name, BlockPtrs... blockPtrs)
-    {
-      this->name = name;
-      addArgs(blockPtrs...);
-    }
-
-    template<typename... BlockPtrs>
-    void addArgs(Block *blockPtr, BlockPtrs... blockPtrs)
-    {
-      add(blockPtr);
-      addArgs(blockPtrs...);
-    }
-
-    //End of recursion. Push final argument.
-    void addArgs(Block *blockPtr)
-    {
-      add(blockPtr);
-      return;
-    }
-
-    static vector<Sequence*> sequenceList;
+    std::string text;
 public:
-    template<typename... BlockPtrs>
-    Sequence(BlockPtrs... blockPtrs)
-    {
-      timeLastUpdate = chrono::system_clock::now();
-      currentStep = 0;
-      finished = false;
-      running = false;
-      steadyStep = false;
-      hierarchyLevel = 0;
-      isOrigin = false;
-      isCompiled = false;
-      name = "unnamed sequence";
-      addArgs(blockPtrs...);
-    }
-    ~Sequence();
-    void compile(bool debug = false);
-    void init(bool debug); //sets hierarchy for debug
-    void setHierarchyLevel(unsigned int value);
-    void setAsOrigin(bool value) { isOrigin = value; }
-    string geName() { return name; }
-    unsigned int getHierarchyLevel();
-    void add(Block *block);
-    void clear();
-    bool update();  //update ongoing block or advance to the next one. Returns true when the sequence is finished.
-    bool update(SpinInfo spinInfo);
-    void start();  //start or resume the sequence.
-    void suspend();  //pause the sequence without resetting the progress.
-    void stop();  //stop the sequence.
-    bool isRunning();
-    bool isFinished();
-    void enableSteadyStep(bool value);
-    bool debugEnabled();
-    void print();
+    Print(const std::string &text);
 
-    static void spinOnce();
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
+
+    virtual string generateDebugName();
 };
 
-class Block
+class Delay : public Block
 {
-protected:
-    Sequence *containerSequence;
+private:
+    Timeout timeout;
 public:
-    void printDebug(string msg, bool line = false); //print msg in the form of sequence debug
-    void printDebugInline(string msg);  //use this instead of printDebug() when printing in lambda passed as a function parameter
+    Delay(double timeSeconds);
 
-    Block();
+    virtual bool update(SpinInfo spinInfo);
 
-    void setContainerSequence(Sequence *sequence);
+    virtual void reset();
+
+    virtual string generateDebugName();
+};
+
+class Function : public Block
+{
+private:
+    function<void(void)> func;
+public:
+    Function(function<void(void)> func);
+
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
+
+    virtual string generateDebugName();
+};
+
+class WaitFor : public Block
+{
+private:
+    function<bool(void)> breakCondition;
+    Timeout timeout;
+public:
+    WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler);
+
+    WaitFor(function<bool(void)> breakCondition, double timeout);
+
+    WaitFor(function<bool(void)> breakCondition);
+
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
+
+    virtual string generateDebugName();
+};
+
+class SequenceBlock : public Block
+{
+private:
+protected:
+    Sequence *sequence;
+public:
+    SequenceBlock(Sequence *sequence);
+
+    ~SequenceBlock();
+
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
 
     virtual string generateDebugName();
 
-    virtual bool update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
-    virtual void reset() = 0;  //Sequence calls reset() before processing each block.
-    virtual void startCallback(); //callback that is called once when the block is starting.
-    virtual void init(bool debug);
-    virtual void print();
+    virtual void init(bool debug) final;
+    virtual void print() final;
 };
+
+class LoopSequence : public SequenceBlock
+{
+private:
+    Timeout timeout;
+    function<bool(void)> breakCondition;
+public:
+    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,function<void(void)> timeoutHandler);
+
+    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout);
+
+    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition);
+
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual string generateDebugName();
+};
+
 }
-#endif
+}
+
+#endif //SEQUENCE_SEQUENCE_H
