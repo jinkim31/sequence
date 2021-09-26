@@ -12,6 +12,7 @@ using namespace seq;
 
 int main()
 {
+    //Sequence constructor takes sequence name(optional) and blocks consisting the sequence as variadic arguments.
     Sequence sequence
     (
         "Main",
@@ -19,7 +20,7 @@ int main()
         new block::Delay(1.0),
         new block::Print("World"),
         new block::Delay(1.0)
-        );
+    );
 
     sequence.compile(true);//set block hierarchy. default parameter bool debug=false. provide true to show debug.
     sequence.start();
