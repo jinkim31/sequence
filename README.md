@@ -58,7 +58,7 @@ int main()
     Sequence sequence
     (
         "Main",
-        new block::Print("inner sequence start"),
+        new block::Print("Inner sequence start"),
         new block::SequenceBlock(new Sequence
         (
             "Inner Sequence",
@@ -83,7 +83,7 @@ result:
 ```
 Sequence started(Main)
 |___Print(inner sequence start)
-inner sequence start
+Inner sequence start
 |___Sequence(Inner Sequence)
 | |___Print(Hello World)
 Hello World
