@@ -27,7 +27,7 @@ int main()
 
     while (1) //use timer callback instead
     {
-        Sequence::spinOnce();//regularly call in timer callback(with ros::spinOnce() in ROS).
+        Sequence::spinOnce();//regularly call in timer callback(use with ros::spinOnce() in ROS).
         Sleep(1);//simulates timer loop
     }
 }
