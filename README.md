@@ -21,13 +21,13 @@ int main()
         new block::Delay(1.0)
         );
 
-    sequence.compile(true);
+    sequence.compile(true);//set block hierarchy. default parameter bool debug=false. provide true to show debug.
     sequence.start();
 
     while (1) //use timer callback instead
     {
-        Sequence::spinOnce();
-        Sleep(1);
+        Sequence::spinOnce();//regularly call in timer callback(with ros::spinOnce() in ROS).
+        Sleep(1);//simulates timer loop
     }
 }
 
