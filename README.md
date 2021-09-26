@@ -64,9 +64,9 @@ int main()
             "Inner Sequence",
             new block::Print("Hello World"),
             new block::Delay(1.0)
-            )),
-            new block::Print("Inner sequence end")
-            );
+        )),
+        new block::Print("Inner sequence end")
+    );
 
     sequence.compile(true);
     sequence.start();
