@@ -3,7 +3,7 @@ Block based sequence description framework.
 
 ## Demo codes
 ### Print&Delay
-```
+```c++
 #include "Sequence/inc/sequence.h"
 #include <windows.h>
 
@@ -47,7 +47,7 @@ Sequence terminated(Main)
 ```
 
 ### Sequence in a sequence
-```
+```c++
 #include "Sequence/inc/sequence.h"
 #include <windows.h>
 
