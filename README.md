@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     ros::Rate loopRate(100);
 
     Sequence sequence
-        (
+    (
         "Main Sequence",
         new block::Debug("Inner sequence start"),
         new block::SequenceBlock(new Sequence
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
             new block::Delay(1.0)
         )),
         new block::Debug("Inner sequence end")
-        );
+    );
     sequence.compile(true);
     sequence.start();
 
