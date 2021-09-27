@@ -1,103 +1,110 @@
 # Sequence
 
-Block based sequence description framework.
+Block based sequential mission management framework.
 
 ## Demo codes
 
 ### Print&Delay
-
 ```c++
-#include "Sequence/inc/sequence.h"
-#include <windows.h>
+#include <ros/ros.h>
+#include "sequence.h"
 
 using namespace std;
 using namespace seq;
 
-int main()
+int main(int argc, char **argv)
 {
-    //Sequence constructor takes sequence name(optional) and blocks consisting the sequence as variadic arguments.
+    ros::init(argc, argv, "mission_control");
+    ros::NodeHandle nh;
+    ros::Rate loopRate(100);
+
     Sequence sequence
     (
-        "Main",
-        new block::Print("Hello"),
+        "Main Sequence",
+        new block::Debug("Hello"),
         new block::Delay(1.0),
-        new block::Print("World"),
+        new block::Debug("World"),
         new block::Delay(1.0)
     );
-
-    sequence.compile(true);//set block hierarchy. default parameter bool debug=false. provide true to show debug.
-    sequence.start();
-
-    while (1) //use timer callback instead
-    {
-        Sequence::spinOnce();//regularly call in timer callback(use with ros::spinOnce() in ROS).
-        Sleep(1);//simulates timer loop
-    }
-}
-
-
-```
-
-result:
-
-```
-Sequence started(Main)
-|___Print(Hello)
-Hello
-|___Delay(1.000000)
-|___Print(World)
-World
-|___Delay(1.000000)
-Sequence terminated(Main)
-```
-
-### Sequence in a sequence
-
-```c++
-#include "Sequence/inc/sequence.h"
-#include <windows.h>
-
-using namespace std;
-using namespace seq;
-
-int main()
-{
-    Sequence sequence
-    (
-        "Main",
-        new block::Print("Inner sequence start"),
-        new block::SequenceBlock(new Sequence
-        (
-            "Inner Sequence",
-            new block::Print("Hello World"),
-            new block::Delay(1.0)
-        )),
-        new block::Print("Inner sequence end")
-    );
-
     sequence.compile(true);
     sequence.start();
 
-    while (1) //use timer callback instead
+    while (ros::ok())
     {
+        ros::spinOnce();
         Sequence::spinOnce();
-        Sleep(1);
+        loopRate.sleep();
     }
+    return 0;
+}
+
+
+```
+
+Result
+
+```
+Sequence started.(Main Sequence)
+|___Debug(Hello)
+|>  Hello
+|___Delay(1.000000)
+|___Debug(World)
+|>  World
+|___Delay(1.000000)
+Sequence terminated.(Main Sequence)
+```
+
+### Sequence in a sequence
+```c++
+#include <ros/ros.h>
+#include "sequence.h"
+
+using namespace std;
+using namespace seq;
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "mission_control");
+    ros::NodeHandle nh;
+    ros::Rate loopRate(100);
+
+    Sequence sequence
+        (
+        "Main Sequence",
+        new block::Debug("Inner sequence start"),
+        new block::SequenceBlock(new Sequence
+        (
+            "Inner Sequence",
+            new block::Debug("Sequence in a sequence"),
+            new block::Delay(1.0)
+        )),
+        new block::Debug("Inner sequence end")
+        );
+    sequence.compile(true);
+    sequence.start();
+
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        Sequence::spinOnce();
+        loopRate.sleep();
+    }
+    return 0;
 }
 
 ```
 
-result:
+Result
 
 ```
-Sequence started(Main)
-|___Print(inner sequence start)
-Inner sequence start
+Sequence started.(Main Sequence)
+|___Debug(Inner sequence start)
+|>  Inner sequence start
 |___Sequence(Inner Sequence)
-| |___Print(Hello World)
-Hello World
+| |___Debug(Sequence in a sequence)
+| |>  Sequence in a sequence
 | |___Delay(1.000000)
-| |___Print(Inner sequence end)
-Inner sequence end
-Sequence terminated(Main)
+| |___Debug(Inner Sequence)
+|>  Inner sequence end
+Sequence terminated.(Main Sequence)
 ```

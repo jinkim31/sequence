@@ -24,6 +24,20 @@ public:
     virtual string generateDebugName();
 };
 
+class Debug : public Block
+{
+private:
+    std::string text;
+public:
+    Debug(const std::string &text);
+
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
+
+    virtual string generateDebugName();
+};
+
 class Delay : public Block
 {
 private:

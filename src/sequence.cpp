@@ -12,12 +12,14 @@ bool seq::block::Print::update(SpinInfo spinInfo)
     return true;
 }
 
-void seq::block::Print::reset()
-{}
-
 string seq::block::Print::generateDebugName()
 {
     return "Print(" + text + ")";
+}
+
+void seq::block::Print::reset()
+{
+
 }
 
 seq::block::Delay::Delay(double timeSeconds)
@@ -186,4 +188,23 @@ string seq::block::LoopSequence::generateDebugName()
     else name += to_string(timeout.getTimeSec());
     name += ")";
     return name;
+}
+
+seq::block::Debug::Debug(const string &text):text(text){}
+
+bool seq::block::Debug::update(seq::SpinInfo spinInfo)
+{
+    if(containerSequence->debugEnabled()) Sequence::printDebug(text);
+    else cout<<"text"<<endl;
+    return true;
+}
+
+string seq::block::Debug::generateDebugName()
+{
+    return "Debug(" + text + ")";
+}
+
+void seq::block::Debug::reset()
+{
+
 }
