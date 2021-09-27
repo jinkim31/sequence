@@ -30,6 +30,7 @@ public:
     bool addTime(double timeDelta);
 
     double getTimeSec();
+
     double getTimeElapsed();
 };
 }

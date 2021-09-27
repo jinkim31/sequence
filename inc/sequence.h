@@ -88,6 +88,7 @@ public:
     virtual string generateDebugName();
 
     virtual void init(bool debug) final;
+
     virtual void print() final;
 };
 
@@ -97,7 +98,8 @@ private:
     Timeout timeout;
     function<bool(void)> breakCondition;
 public:
-    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,function<void(void)> timeoutHandler);
+    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,
+        function<void(void)> timeoutHandler);
 
     LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout);
 

@@ -1,8 +1,11 @@
 # Sequence
+
 Block based sequence description framework.
 
 ## Demo codes
+
 ### Print&Delay
+
 ```c++
 #include "Sequence/inc/sequence.h"
 #include <windows.h>
@@ -34,7 +37,9 @@ int main()
 
 
 ```
+
 result:
+
 ```
 Sequence started(Main)
 |___Print(Hello)
@@ -47,6 +52,7 @@ Sequence terminated(Main)
 ```
 
 ### Sequence in a sequence
+
 ```c++
 #include "Sequence/inc/sequence.h"
 #include <windows.h>
@@ -80,7 +86,9 @@ int main()
 }
 
 ```
+
 result:
+
 ```
 Sequence started(Main)
 |___Print(inner sequence start)
