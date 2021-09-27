@@ -7,7 +7,7 @@ Block based sequential mission management framework.
 ### Print&Delay
 ```c++
 #include <ros/ros.h>
-#include "sequence.h"
+#include <sequence.h>
 
 using namespace std;
 using namespace seq;
@@ -57,7 +57,7 @@ Sequence terminated.(Main Sequence)
 ### Sequence in a sequence
 ```c++
 #include <ros/ros.h>
-#include "sequence.h"
+#include <sequence.h>
 
 using namespace std;
 using namespace seq;
