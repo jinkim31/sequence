@@ -25,7 +25,7 @@ void Sequence::add(Block *block)
 {
     if (isCompiled)
     {
-        throw InvalidOperation("Can't add blocks to already compiled sequence.");
+        return;
     }
     blockList.push_back(block);
 }
@@ -57,7 +57,7 @@ bool Sequence::update(SpinInfo spinInfo)
             //reset the block, call callback
             if ((size_t) currentStep < blockList.size())
             {
-                Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
+                if(debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
                 blockList[currentStep]->reset();
                 blockList[currentStep]->startCallback();
             }
@@ -128,7 +128,7 @@ void Sequence::init(bool debug)
 {
     if (isCompiled)
     {
-        throw InvalidOperation("Sequence already compiled.");
+        return;
     }
 
     this->debug = debug;
@@ -208,7 +208,7 @@ seq::Block::Block()
 
 string seq::Block::generateDebugName()
 {
-    return string("Block(") + typeid(*this).name() + string(")");
+    return string("Unknown block");
 }
 
 void Block::init(bool debug)
