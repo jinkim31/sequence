@@ -116,7 +116,6 @@ Sequence terminated.(Main Sequence)
 /* USER CODE BEGIN Includes */
 #include "../../Sequence/inc/sequence.h"
 
-using namespace scue;
 using namespace seq;
 ...
 
