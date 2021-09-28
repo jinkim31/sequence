@@ -6,8 +6,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <actionlib_msgs/GoalStatusArray.h>
 #include <geometry_msgs/Twist.h>
-#include "sequence_core.h"
-#include "sequence.h"
+#include "../../inc/sequence_core.h"
+#include "../../inc/sequence.h"
 
 using namespace std;
 using namespace seq;

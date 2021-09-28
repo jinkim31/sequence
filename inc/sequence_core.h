@@ -9,7 +9,6 @@
 #include <cstdarg>
 #include <chrono>
 #include <stdexcept>
-#include "chronometer.h"
 
 using namespace std;
 
@@ -47,8 +46,7 @@ private:
     unsigned int hierarchyLevel;
     bool isCompiled;
     static double timeLastUpdate;
-    static Chronometer* chronometer;
-    static Chronometer chronometerAllocator;
+
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
     void addArgs(string name, BlockPtrs... blockPtrs)
@@ -77,7 +75,7 @@ public:
     template<typename... BlockPtrs>
     Sequence(BlockPtrs... blockPtrs)
     {
-        timeLastUpdate = getTime();
+        timeLastUpdate = -1;
         currentStep = 0;
         finished = false;
         running = false;
@@ -124,9 +122,8 @@ public:
     void print();
 
     static void spinOnce();
-    static void setChronometer(Chronometer &chronometer);
+    static void spinOnce(double loopRate);
     static void printDebug(string msg, bool line = false);
-    double getTime();
 };
 
 class Block

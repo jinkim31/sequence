@@ -5,8 +5,6 @@ using namespace seq;
 vector<Sequence *> Sequence::sequenceList;
 Block *Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
-Chronometer Sequence::chronometerAllocator;
-Chronometer* Sequence::chronometer = nullptr;
 
 Sequence::~Sequence()
 {
@@ -161,18 +159,15 @@ void Sequence::print()
 void Sequence::spinOnce()
 {
     //Calculate time duration since last spin.
-    double currentTime = chronometer->getTime();
-    SpinInfo spinInfo;
-    spinInfo.timeDelta = currentTime - timeLastUpdate;
-    timeLastUpdate = currentTime;
+    double currentTime = chrono::system_clock::now().time_since_epoch().count() / 1000000000.0;
 
-    for (Sequence *sequence: sequenceList)
+    if(timeLastUpdate==-1)
     {
-        if (sequence->update(spinInfo))
-        {
-
-        }
+        timeLastUpdate = chrono::system_clock::now().time_since_epoch().count() / 1000000000.0;
     }
+
+    timeLastUpdate = currentTime;
+     spinOnce( currentTime - timeLastUpdate);
 }
 
 void Sequence::compile(bool debug)
@@ -192,19 +187,18 @@ void Sequence::printDebug(string msg, bool line)
     cout << msg << endl;
 }
 
-void Sequence::setChronometer(Chronometer &chronometer)
+void Sequence::spinOnce(double loopRate)
 {
-    Sequence::chronometer = &chronometer;
-}
+    SpinInfo spinInfo;
+    spinInfo.timeDelta = loopRate;
 
-double Sequence::getTime()
-{
-    if(chronometer == nullptr)
+    for (Sequence *sequence: sequenceList)
     {
-        chronometer = &chronometerAllocator;
-    }
+        if (sequence->update(spinInfo))
+        {
 
-    return  chronometer->getTime();
+        }
+    }
 }
 
 seq::Block::Block()

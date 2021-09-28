@@ -18,16 +18,16 @@ add_library(${PROJECT_NAME} STATIC
         src/sequence_core.cpp
         src/sequence.cpp
         src/util.cpp
-        src/sequence_ros.cpp src/chronometer.cpp inc/chronometer.h src/sequence_embedded.cpp inc/sequence_embedded.h)
+        ros/src/sequence_ros.cpp)
 
-add_executable(testcode src/testcode.cpp)
+add_executable(testcode ros/src/testcode.cpp)
 target_link_libraries(testcode ${catkin_LIBRARIES} sequence)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         inc/sequence_core.h
         inc/sequence.h
         inc/util.h
-        inc/sequence_ros.h)
+        ros/inc/sequence_ros.h)
 
 install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
