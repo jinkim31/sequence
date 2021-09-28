@@ -11,7 +11,6 @@ catkin_package(
         CATKIN_DEPENDS roscpp std_msgs
 )
 include_directories(
-        include
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -19,7 +18,10 @@ add_library(${PROJECT_NAME} STATIC
         src/sequence_core.cpp
         src/sequence.cpp
         src/util.cpp
-        src/sequence_ros.cpp)
+        src/sequence_ros.cpp src/chronometer.cpp inc/chronometer.h src/sequence_embedded.cpp inc/sequence_embedded.h)
+
+add_executable(testcode src/testcode.cpp)
+target_link_libraries(testcode ${catkin_LIBRARIES} sequence)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         inc/sequence_core.h

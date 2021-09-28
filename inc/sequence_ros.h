@@ -93,6 +93,7 @@ protected:
     }
 
 public:
+
     Subscribe(string topic, int queueSize, function<bool(const T &)> userCallback) : Subscribe(topic, queueSize)
     {
         this->userCallback = userCallback;
@@ -129,6 +130,44 @@ public:
     }
 };
 
+template<typename T>
+class ServiceCall : public Block
+{
+private:
+    string serviceName;
+    T* srv;
+    T allocatorSrv;
+protected:
+    ros::ServiceClient client;
+public:
+    ServiceCall(T* srv, string serviceName) : srv(srv), serviceName(serviceName)
+    {
+        ros::NodeHandle nh;
+        client = nh.serviceClient<T>(serviceName);
+    }
+    ServiceCall(string serviceName) : serviceName(serviceName)
+    {
+        srv = &allocatorSrv;
+        ros::NodeHandle nh;
+        client = nh.serviceClient<T>(serviceName);
+    }
+    virtual bool update(SpinInfo spinInfo)
+    {
+        client.template call(*srv);
+        return true;
+    }
+
+    void virtual reset()
+    {
+
+    }
+
+    virtual string generateDebugName()
+    {
+        return "ServiceCall(" + string(typeid(T).name()) + ")";
+    }
+};
+
 class NavGoal : public Publish<geometry_msgs::PoseStamped>
 {
 public:
@@ -151,9 +190,10 @@ public:
         to_string(msg->pose.position.x) + "," +
         to_string(msg->pose.position.y) + "," +
         to_string(msg->pose.position.z) + "] [" +
-        to_string(msg->pose.position.x) + "," +
-        to_string(msg->pose.position.y) + "," +
-        to_string(msg->pose.position.z) + "])";
+        to_string(msg->pose.orientation.x) + "," +
+        to_string(msg->pose.orientation.y) + "," +
+        to_string(msg->pose.orientation.z) + "," +
+        to_string(msg->pose.orientation.w) + "])";
     }
 };
 

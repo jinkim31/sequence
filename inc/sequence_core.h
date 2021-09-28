@@ -9,6 +9,7 @@
 #include <cstdarg>
 #include <chrono>
 #include <stdexcept>
+#include "chronometer.h"
 
 using namespace std;
 
@@ -45,8 +46,9 @@ private:
     bool debug;
     unsigned int hierarchyLevel;
     bool isCompiled;
-    chrono::system_clock::time_point timeLastUpdate;
-
+    static double timeLastUpdate;
+    static Chronometer* chronometer;
+    static Chronometer chronometerAllocator;
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
     void addArgs(string name, BlockPtrs... blockPtrs)
@@ -75,7 +77,7 @@ public:
     template<typename... BlockPtrs>
     Sequence(BlockPtrs... blockPtrs)
     {
-        timeLastUpdate = chrono::system_clock::now();
+        timeLastUpdate = getTime();
         currentStep = 0;
         finished = false;
         running = false;
@@ -106,7 +108,6 @@ public:
 
     void clear();
 
-    bool update();  //update ongoing block or advance to the next one. Returns true when the sequence is finished.
     bool update(SpinInfo spinInfo);
 
     void start();  //start or resume the sequence.
@@ -123,8 +124,9 @@ public:
     void print();
 
     static void spinOnce();
-
+    static void setChronometer(Chronometer &chronometer);
     static void printDebug(string msg, bool line = false);
+    double getTime();
 };
 
 class Block
@@ -141,8 +143,7 @@ public:
 
     virtual string generateDebugName();
 
-    virtual bool
-    update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
+    virtual bool update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
     virtual void reset() = 0;  //Sequence calls reset() before processing each block.
     virtual void startCallback(); //callback that is called once when the block is starting.
     virtual void endCallback();
