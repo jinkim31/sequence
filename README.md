@@ -108,3 +108,46 @@ Sequence started.(Main Sequence)
 |>  Inner sequence end
 Sequence terminated.(Main Sequence)
 ```
+
+### In embedded developments
+```c++
+//make sure it's C++ project
+
+/* USER CODE BEGIN Includes */
+#include "../../Sequence/inc/sequence.h"
+
+using namespace scue;
+using namespace seq;
+...
+
+/* USER CODE BEGIN PV */
+int sequenceCnt=0;
+...
+
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+	Sequence sequence
+	(
+        new block::LoopSequence(new Sequence
+        (
+            new block::Function([&]{sequenceCnt++;}),
+            new block::Delay(1)
+        ), []{return false;})
+	);
+
+	sequence.compile();
+	sequence.start();
+
+  /* USER CODE END 1 */
+  ...
+  
+/* USER CODE BEGIN 4 */
+//100Hz(0.001sec) timer callback
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	Sequence::spinOnce(0.001);
+}
+...
+
+```
