@@ -171,8 +171,11 @@ bool seq::block::LoopSequence::update(SpinInfo spinInfo)
     {
         sequence->stop();
         sequence->start();
-
-        return breakCondition->evaluate();
+    }
+    if(breakCondition->evaluate())
+    {
+        sequence->stop();
+        return true;
     }
     return false;
 }

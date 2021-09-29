@@ -15,9 +15,9 @@ int main(int argc, char **argv)
     Sequence sequence
     (
         "main",
-        new block::LoopSequence(new BroadcastCondition("Stop"), new Sequence
+        new block::LoopSequence(new BroadcastCondition("Stop"), 3,new Sequence
         (
-            new block::Debug("R")
+            new block::Delay(10000)
         )),
         new block::Debug("stopped")
     );
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        if(loopCnt++%100 == 30) Sequence::broadcast("Stop");
+        //if(loopCnt++%100 == 30) Sequence::broadcast("Stop");
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
