@@ -137,6 +137,8 @@ public:
 
     virtual bool update(SpinInfo spinInfo);
     virtual void reset();
+
+    virtual string generateDebugName();
 };
 
 class Broadcast : public Block
@@ -145,9 +147,11 @@ private:
     string msg;
 public:
     Broadcast(string msg);
-    bool update(SpinInfo spinInfo) override;
+    virtual bool update(SpinInfo spinInfo);
 
-    void reset() override;
+    virtual void reset();
+
+    virtual string generateDebugName();
 };
 
 }

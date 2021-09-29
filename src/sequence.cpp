@@ -239,6 +239,11 @@ void seq::block::WaitForBroadcast::reset()
 
 }
 
+string seq::block::WaitForBroadcast::generateDebugName()
+{
+    return "WaitForBroadcast("+broadcastWaitingFor+")";
+}
+
 bool seq::block::Broadcast::update(seq::SpinInfo spinInfo)
 {
     Sequence::broadcast(msg);
@@ -252,4 +257,9 @@ void seq::block::Broadcast::reset()
 
 seq::block::Broadcast::Broadcast(string msg) : msg(msg)
 {
+}
+
+string seq::block::Broadcast::generateDebugName()
+{
+    return "Broadcast("+msg+")";
 }

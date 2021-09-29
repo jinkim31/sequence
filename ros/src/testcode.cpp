@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        if(loopCnt++%10 == 0 && !broadcaster.isRunning()) broadcaster.start();
+        if(loopCnt++%10 == 0) Sequence::broadcast("Hi");
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
