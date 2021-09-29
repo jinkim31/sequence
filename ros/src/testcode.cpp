@@ -15,11 +15,11 @@ int main(int argc, char **argv)
     Sequence sequence
     (
         "main",
-        new block::LoopSequence(new Sequence
+        new block::LoopSequence(new BroadcastCondition("Stop"), new Sequence
         (
-            new block::WaitForBroadcast("Hi"),
             new block::Debug("R")
-        ), []{return false;})
+        )),
+        new block::Debug("stopped")
     );
 
     sequence.compile(true);
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        if(loopCnt++%10 == 0) Sequence::broadcast("Hi");
+        if(loopCnt++%100 == 30) Sequence::broadcast("Stop");
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();

@@ -43,3 +43,12 @@ double seq::Timeout::getTimeElapsed()
 {
     return timeElapsed;
 }
+
+bool seq::LambdaCondition::evaluate()
+{
+    return condition();
+}
+
+seq::LambdaCondition::LambdaCondition(function<bool(void)> condition) : condition(condition)
+{
+}

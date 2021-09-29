@@ -65,18 +65,18 @@ string seq::block::Function::generateDebugName()
     return "Function";
 }
 
-seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler)
+seq::block::WaitFor::WaitFor(Condition* breakCondition, double timeout, function<void(void)> timeoutHandler)
 {
     this->breakCondition = breakCondition;
     this->timeout.setTime(timeout);
     this->timeout.setTimeoutHandler(timeoutHandler);
 }
 
-seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout) : WaitFor(breakCondition, timeout,
+seq::block::WaitFor::WaitFor(Condition* breakCondition, double timeout) : WaitFor(breakCondition, timeout,
 NULL)
 {}
 
-seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0)
+seq::block::WaitFor::WaitFor(Condition* breakCondition) : WaitFor(breakCondition, -1.0)
 {}
 
 bool seq::block::WaitFor::update(SpinInfo spinInfo)
@@ -87,7 +87,7 @@ bool seq::block::WaitFor::update(SpinInfo spinInfo)
         return true;
     }
 
-    if (breakCondition())
+    if (breakCondition->evaluate())
     {
         //Sequence::printDebug("condition met");
         return true;
@@ -147,21 +147,17 @@ void seq::block::SequenceBlock::print()
     sequence->print();
 }
 
-seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,
-function<void(void)> timeoutHandler) : SequenceBlock(sequence)
+seq::block::LoopSequence::LoopSequence(Condition* breakCondition, double timeout,function<void(void)> timeoutHandler, Sequence *sequence) : SequenceBlock(sequence)
 {
     this->breakCondition = breakCondition;
     this->timeout.setTime(timeout);
     this->timeout.setTimeoutHandler(timeoutHandler);
 }
 
-seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout)
-: LoopSequence(sequence, breakCondition, timeout, NULL)
+seq::block::LoopSequence::LoopSequence(Condition* breakCondition, double timeout, Sequence *sequence): LoopSequence(breakCondition, timeout, NULL, sequence)
 {}
 
-seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition) : LoopSequence(sequence,
-breakCondition,
--1.0)
+seq::block::LoopSequence::LoopSequence(Condition* breakCondition, Sequence *sequence) : LoopSequence(breakCondition, -1.0, sequence)
 {}
 
 bool seq::block::LoopSequence::update(SpinInfo spinInfo)
@@ -176,7 +172,7 @@ bool seq::block::LoopSequence::update(SpinInfo spinInfo)
         sequence->stop();
         sequence->start();
 
-        return breakCondition();
+        return breakCondition->evaluate();
     }
     return false;
 }

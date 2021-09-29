@@ -9,6 +9,7 @@
 #include <cstdarg>
 #include <chrono>
 #include <stdexcept>
+#include "util.h"
 
 using namespace std;
 
@@ -33,6 +34,15 @@ struct SpinInfo
 /*Classes*/
 class Block;//forward declaration
 
+class BroadcastCondition : public Condition
+{
+private:
+    string msg;
+public:
+    BroadcastCondition(string msg);
+    virtual bool evaluate();
+};
+
 class Sequence
 {
 private:
@@ -48,6 +58,7 @@ private:
     bool isCompiled;
     static double timeLastUpdate;
     static queue<string> broadcastQueue;
+    static string currentBroadcast;
 
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
@@ -130,6 +141,8 @@ public:
     static void broadcast(string msg);
 
     static void printDebug(string msg, bool line = false);
+
+    static string getCurrentBroadcast();
 };
 
 class Block

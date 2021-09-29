@@ -69,14 +69,14 @@ public:
 class WaitFor : public Block
 {
 private:
-    function<bool(void)> breakCondition;
+    Condition* breakCondition;
     Timeout timeout;
 public:
-    WaitFor(function<bool(void)> breakCondition, double timeout, function<void(void)> timeoutHandler);
+    WaitFor(Condition* breakCondition, double timeout, function<void(void)> timeoutHandler);
 
-    WaitFor(function<bool(void)> breakCondition, double timeout);
+    WaitFor(Condition* breakCondition, double timeout);
 
-    WaitFor(function<bool(void)> breakCondition);
+    WaitFor(Condition* breakCondition);
 
     virtual bool update(SpinInfo spinInfo);
 
@@ -110,13 +110,13 @@ class LoopSequence : public SequenceBlock
 {
 private:
     Timeout timeout;
-    function<bool(void)> breakCondition;
+    Condition* breakCondition;
 public:
-    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,function<void(void)> timeoutHandler);
+    LoopSequence(Condition* breakCondition, double timeout,function<void(void)> timeoutHandler, Sequence *sequence);
 
-    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout);
+    LoopSequence(Condition* breakCondition, double timeout, Sequence *sequence);
 
-    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition);
+    LoopSequence(Condition* breakCondition, Sequence *sequence);
 
     virtual bool update(SpinInfo spinInfo);
 

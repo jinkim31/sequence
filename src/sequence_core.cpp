@@ -6,6 +6,17 @@ vector<Sequence *> Sequence::sequenceList;
 Block *Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
 queue<string> Sequence::broadcastQueue;
+string Sequence::currentBroadcast;
+
+seq::BroadcastCondition::BroadcastCondition(string msg) : msg(msg)
+{
+}
+
+bool seq::BroadcastCondition::evaluate()
+{
+    return Sequence::getCurrentBroadcast() == msg;
+}
+
 
 Sequence::~Sequence()
 {
@@ -201,6 +212,7 @@ void Sequence::spinOnce(double loopRate)
     else
     {
         spinInfo.broadcastMsg = broadcastQueue.front();
+        currentBroadcast = broadcastQueue.front();
         broadcastQueue.pop();
     }
 
@@ -216,6 +228,11 @@ void Sequence::spinOnce(double loopRate)
 void Sequence::broadcast(string msg)
 {
     Sequence::broadcastQueue.push(msg);
+}
+
+string Sequence::getCurrentBroadcast()
+{
+    return currentBroadcast;
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef SEQUENCE_UTIL_H
 #define SEQUENCE_UTIL_H
 
+#include <iostream>
 #include <functional>
 
 using namespace std;
@@ -33,5 +34,21 @@ public:
 
     double getTimeElapsed();
 };
+
+class Condition
+{
+public:
+    virtual bool evaluate() = 0;
+};
+
+class LambdaCondition : public Condition
+{
+private:
+    function<bool(void)> condition;
+public:
+    LambdaCondition(function<bool(void)> condition);
+    virtual bool evaluate();
+};
+
 }
 #endif //SEQUENCE_UTIL_H
