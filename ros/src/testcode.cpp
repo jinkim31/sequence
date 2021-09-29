@@ -8,8 +8,6 @@ using namespace seq;
 
 int main(int argc, char **argv)
 {
-    double currentTime = 0;
-
     ros::init(argc, argv, "sequence_test_node");
     ros::NodeHandle nh;
     Sequence sequence
@@ -20,7 +18,7 @@ int main(int argc, char **argv)
         new block::Delay(1),
         new block::Delay(1),
         new block::Delay(1)
-        );
+    );
 
     sequence.compile(true);
     sequence.start();
@@ -28,7 +26,7 @@ int main(int argc, char **argv)
     ros::Rate loopRate(10);
     while (ros::ok())
     {
-        Sequence::spinOnce(0.1);
+        Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
     }

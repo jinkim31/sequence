@@ -163,11 +163,12 @@ void Sequence::spinOnce()
 
     if(timeLastUpdate==-1)
     {
-        timeLastUpdate = chrono::system_clock::now().time_since_epoch().count() / 1000000000.0;
+        timeLastUpdate = currentTime;
     }
 
+    spinOnce( currentTime - timeLastUpdate);
+
     timeLastUpdate = currentTime;
-     spinOnce( currentTime - timeLastUpdate);
 }
 
 void Sequence::compile(bool debug)
