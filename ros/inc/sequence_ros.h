@@ -46,8 +46,8 @@ public:
     {
         if (publisher.getNumSubscribers() == 0)
             ROS_WARN(
-                "[Sequence] Publisher(%s %s) is not being subscribed by anything. \nIf it is the first block of the sequence, you might want to give some delay before it so that other nodes can subscribe.",
-                typeid(T).name(), topic.c_str());
+            "[Sequence] Publisher(%s %s) is not being subscribed by anything. \nIf it is the first block of the sequence, you might want to give some delay before it so that other nodes can subscribe.",
+            typeid(T).name(), topic.c_str());
         publisher.publish(*msg);
         return true;
     }
@@ -112,6 +112,7 @@ public:
         //disable subscriber by subscribing to topic+"_DISABLED_".
         subscriber = nh.subscribe(topic + "_DISABLED_", queueSize, &Subscribe::callback, this);
     }
+
     virtual bool update(SpinInfo spinInfo)
     {
         //if(subscriber.getNumPublishers()==0) ROS_WARN("[Sequence] Subscriber(%s %s) is not subscribing any publisher.\n", typeid(T).name(), topic.c_str());
@@ -135,22 +136,24 @@ class ServiceCall : public Block
 {
 private:
     string serviceName;
-    T* srv;
+    T *srv;
     T allocatorSrv;
 protected:
     ros::ServiceClient client;
 public:
-    ServiceCall(T* srv, string serviceName) : srv(srv), serviceName(serviceName)
+    ServiceCall(T *srv, string serviceName) : srv(srv), serviceName(serviceName)
     {
         ros::NodeHandle nh;
         client = nh.serviceClient<T>(serviceName);
     }
+
     ServiceCall(string serviceName) : serviceName(serviceName)
     {
         srv = &allocatorSrv;
         ros::NodeHandle nh;
         client = nh.serviceClient<T>(serviceName);
     }
+
     virtual bool update(SpinInfo spinInfo)
     {
         client.template call(*srv);
@@ -172,7 +175,7 @@ class NavGoal : public Publish<geometry_msgs::PoseStamped>
 {
 public:
     NavGoal(double posX, double posY, double posZ, double oriX, double oriY, double oriZ, double oriW) : Publish(
-        "move_base_simple/goal", 1)
+    "move_base_simple/goal", 1)
     {
         msg->header.frame_id = "map";
         msg->pose.position.x = posX;
@@ -187,13 +190,13 @@ public:
     virtual string generateDebugName()
     {
         return "NavGoal([" +
-        to_string(msg->pose.position.x) + "," +
-        to_string(msg->pose.position.y) + "," +
-        to_string(msg->pose.position.z) + "] [" +
-        to_string(msg->pose.orientation.x) + "," +
-        to_string(msg->pose.orientation.y) + "," +
-        to_string(msg->pose.orientation.z) + "," +
-        to_string(msg->pose.orientation.w) + "])";
+               to_string(msg->pose.position.x) + "," +
+               to_string(msg->pose.position.y) + "," +
+               to_string(msg->pose.position.z) + "] [" +
+               to_string(msg->pose.orientation.x) + "," +
+               to_string(msg->pose.orientation.y) + "," +
+               to_string(msg->pose.orientation.z) + "," +
+               to_string(msg->pose.orientation.w) + "])";
     }
 };
 
@@ -208,7 +211,7 @@ public:
 
     virtual string generateDebugName()
     {
-        return "Twist("+to_string(msg->linear.x)+","+to_string(msg->angular.z)+")";
+        return "Twist(" + to_string(msg->linear.x) + "," + to_string(msg->angular.z) + ")";
     }
 };
 
@@ -219,7 +222,7 @@ public:
     {
         setUserCallback([&](const actionlib_msgs::GoalStatusArray &msg)
         {
-            if(!msg.status_list.empty() && msg.status_list.back().status == 3)
+            if (!msg.status_list.empty() && msg.status_list.back().status == 3)
             {
                 Sequence::printDebug("status==3");
                 return true;
@@ -241,7 +244,7 @@ public:
     {
         setUserCallback([&](const actionlib_msgs::GoalStatusArray &msg)
         {
-            if(!msg.status_list.empty() && msg.status_list.back().status == 1)
+            if (!msg.status_list.empty() && msg.status_list.back().status == 1)
             {
                 Sequence::printDebug("status==1");
                 return true;
@@ -260,10 +263,10 @@ class WaitForNavReachLatched : public block::SequenceBlock
 {
 public:
     WaitForNavReachLatched() : block::SequenceBlock(new Sequence
-        (
-            new WaitForNavStart,
-            new WaitForNavReach
-        ))
+    (
+    new WaitForNavStart,
+    new WaitForNavReach
+    ))
     {}
 
     virtual string generateDebugName()

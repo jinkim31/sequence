@@ -5,6 +5,7 @@ Block based sequential mission management framework.
 ## Demo codes
 
 ### Print&Delay
+
 ```c++
 #include <ros/ros.h>
 #include <sequence.h>
@@ -55,6 +56,7 @@ Sequence terminated.(Main Sequence)
 ```
 
 ### Sequence in a sequence
+
 ```c++
 #include <ros/ros.h>
 #include <sequence.h>
@@ -110,6 +112,7 @@ Sequence terminated.(Main Sequence)
 ```
 
 ### In embedded developments
+
 ```c++
 //make sure it's C++ project
 

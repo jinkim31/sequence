@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
         std_msgs
         )
 catkin_package(
-        INCLUDE_DIRS inc
+        INCLUDE_DIRS inc ros/inc
         LIBRARIES sequence
         CATKIN_DEPENDS roscpp std_msgs
 )

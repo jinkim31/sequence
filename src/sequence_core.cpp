@@ -5,6 +5,7 @@ using namespace seq;
 vector<Sequence *> Sequence::sequenceList;
 Block *Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
+queue<string> Sequence::broadcastQueue;
 
 Sequence::~Sequence()
 {
@@ -55,18 +56,19 @@ bool Sequence::update(SpinInfo spinInfo)
             blockList[currentStep]->endCallback();
             currentStep++;
             //reset the block, call callback
-            if ((size_t) currentStep < blockList.size())
+            if (currentStep < blockList.size())
             {
-                if(debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
+                if (debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
                 blockList[currentStep]->reset();
                 blockList[currentStep]->startCallback();
             }
-                //Check for end of the sequence.
+            //Check for end of the sequence.
             else
             {
                 stop();
                 finished = true;
-                if (isOrigin)cout << string("Sequence terminated.(") + name + string(")") << endl;
+                running = false;
+                if (isOrigin && debug)cout << string("Sequence terminated.(") + name + string(")") << endl;
                 return true;
             }
         }
@@ -87,14 +89,14 @@ void Sequence::start()
 {
     if (!blockList.empty())
     {
-        if (isOrigin)cout << string("Sequence started.(") + name + string(")") << endl;
+        if (isOrigin && debug)cout << string("Sequence started.(") + name + string(")") << endl;
 
         running = true;
         finished = false;
-        Sequence::ongoingBlock = blockList[0];
+        Sequence::ongoingBlock = blockList[currentStep];
         Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
-        blockList[0]->reset();
-        blockList[0]->startCallback();
+        blockList[currentStep]->reset();
+        blockList[currentStep]->startCallback();
     }
 }
 
@@ -161,12 +163,12 @@ void Sequence::spinOnce()
     //Calculate time duration since last spin.
     double currentTime = chrono::system_clock::now().time_since_epoch().count() / 1000000000.0;
 
-    if(timeLastUpdate==-1)
+    if (timeLastUpdate == -1)
     {
         timeLastUpdate = currentTime;
     }
 
-    spinOnce( currentTime - timeLastUpdate);
+    spinOnce(currentTime - timeLastUpdate);
 
     timeLastUpdate = currentTime;
 }
@@ -192,6 +194,15 @@ void Sequence::spinOnce(double loopRate)
 {
     SpinInfo spinInfo;
     spinInfo.timeDelta = loopRate;
+    if(broadcastQueue.empty())
+    {
+        spinInfo.broadcastMsg="";
+    }
+    else
+    {
+        spinInfo.broadcastMsg = broadcastQueue.front();
+        broadcastQueue.pop();
+    }
 
     for (Sequence *sequence: sequenceList)
     {
@@ -201,6 +212,12 @@ void Sequence::spinOnce(double loopRate)
         }
     }
 }
+
+void Sequence::broadcast(string msg)
+{
+    Sequence::broadcastQueue.push(msg);
+}
+
 
 seq::Block::Block()
 {

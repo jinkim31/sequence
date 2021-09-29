@@ -73,7 +73,7 @@ seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout
 }
 
 seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition, double timeout) : WaitFor(breakCondition, timeout,
-    NULL)
+NULL)
 {}
 
 seq::block::WaitFor::WaitFor(function<bool(void)> breakCondition) : WaitFor(breakCondition, -1.0)
@@ -139,7 +139,7 @@ void seq::block::SequenceBlock::init(bool debug)
 }
 
 string seq::block::SequenceBlock::generateDebugName()
-{ return string("Sequence(") + sequence->geName() + string(")"); }
+{ return string("Sequence(") + sequence->getName() + string(")"); }
 
 void seq::block::SequenceBlock::print()
 {
@@ -148,7 +148,7 @@ void seq::block::SequenceBlock::print()
 }
 
 seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,
-    function<void(void)> timeoutHandler) : SequenceBlock(sequence)
+function<void(void)> timeoutHandler) : SequenceBlock(sequence)
 {
     this->breakCondition = breakCondition;
     this->timeout.setTime(timeout);
@@ -156,12 +156,12 @@ seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> 
 }
 
 seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout)
-    : LoopSequence(sequence, breakCondition, timeout, NULL)
+: LoopSequence(sequence, breakCondition, timeout, NULL)
 {}
 
 seq::block::LoopSequence::LoopSequence(Sequence *sequence, function<bool(void)> breakCondition) : LoopSequence(sequence,
-    breakCondition,
-    -1.0)
+breakCondition,
+-1.0)
 {}
 
 bool seq::block::LoopSequence::update(SpinInfo spinInfo)
@@ -183,19 +183,20 @@ bool seq::block::LoopSequence::update(SpinInfo spinInfo)
 
 string seq::block::LoopSequence::generateDebugName()
 {
-    string name = "Loop(sequence:" + sequence->geName() + ", timeout:";
+    string name = "Loop(sequence:" + sequence->getName() + ", timeout:";
     if (timeout.getTimeSec() < 0) name += "none";
     else name += to_string(timeout.getTimeSec());
     name += ")";
     return name;
 }
 
-seq::block::Debug::Debug(const string &text):text(text){}
+seq::block::Debug::Debug(const string &text) : text(text)
+{}
 
 bool seq::block::Debug::update(seq::SpinInfo spinInfo)
 {
-    if(containerSequence->debugEnabled()) Sequence::printDebug(text);
-    else cout<<"text"<<endl;
+    if (containerSequence->debugEnabled()) Sequence::printDebug(text);
+    else cout << text << endl;
     return true;
 }
 
@@ -207,4 +208,48 @@ string seq::block::Debug::generateDebugName()
 void seq::block::Debug::reset()
 {
 
+}
+
+seq::block::WaitForBroadcast::WaitForBroadcast(string broadcastMsg, double timeout, function<void(void)> timeoutHandler): broadcastWaitingFor(broadcastMsg)
+{
+    this->timeout.setTime(timeout);
+    this->timeout.setTimeoutHandler(timeoutHandler);
+}
+
+seq::block::WaitForBroadcast::WaitForBroadcast(string broadcastMsg, double timeout) : WaitForBroadcast(broadcastMsg, timeout, NULL)
+{
+}
+
+seq::block::WaitForBroadcast::WaitForBroadcast(string broadcastMsg) : WaitForBroadcast(broadcastMsg, -1)
+{
+}
+
+bool seq::block::WaitForBroadcast::update(seq::SpinInfo spinInfo)
+{
+    if(timeout.addTime(spinInfo.timeDelta))
+    {
+        Sequence::printDebug("timeout");
+        return true;
+    }
+    return spinInfo.broadcastMsg == broadcastWaitingFor;
+}
+
+void seq::block::WaitForBroadcast::reset()
+{
+
+}
+
+bool seq::block::Broadcast::update(seq::SpinInfo spinInfo)
+{
+    Sequence::broadcast(msg);
+    return true;
+}
+
+void seq::block::Broadcast::reset()
+{
+
+}
+
+seq::block::Broadcast::Broadcast(string msg) : msg(msg)
+{
 }

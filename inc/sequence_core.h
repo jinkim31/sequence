@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <vector>
-#include <tuple>
+#include <queue>
 #include <functional>
 #include <string>
 #include <cstdarg>
@@ -27,6 +27,7 @@ public:
 struct SpinInfo
 {
     double timeDelta;
+    string broadcastMsg;
 };
 
 /*Classes*/
@@ -46,6 +47,7 @@ private:
     unsigned int hierarchyLevel;
     bool isCompiled;
     static double timeLastUpdate;
+    static queue<string> broadcastQueue;
 
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
@@ -97,7 +99,7 @@ public:
     void setAsOrigin(bool value)
     { isOrigin = value; }
 
-    string geName()
+    string getName()
     { return name; }
 
     unsigned int getHierarchyLevel();
@@ -122,7 +124,11 @@ public:
     void print();
 
     static void spinOnce();
+
     static void spinOnce(double loopRate);
+
+    static void broadcast(string msg);
+
     static void printDebug(string msg, bool line = false);
 };
 
@@ -140,10 +146,12 @@ public:
 
     virtual string generateDebugName();
 
-    virtual bool update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
+    virtual bool
+    update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
     virtual void reset() = 0;  //Sequence calls reset() before processing each block.
     virtual void startCallback(); //callback that is called once when the block is starting.
     virtual void endCallback();
+
     virtual void init(bool debug);
 
     virtual void print();

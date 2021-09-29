@@ -112,8 +112,7 @@ private:
     Timeout timeout;
     function<bool(void)> breakCondition;
 public:
-    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,
-        function<void(void)> timeoutHandler);
+    LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout,function<void(void)> timeoutHandler);
 
     LoopSequence(Sequence *sequence, function<bool(void)> breakCondition, double timeout);
 
@@ -122,6 +121,33 @@ public:
     virtual bool update(SpinInfo spinInfo);
 
     virtual string generateDebugName();
+};
+
+class WaitForBroadcast : public Block
+{
+private:
+    string broadcastWaitingFor;
+    Timeout timeout;
+public:
+    WaitForBroadcast(string broadcastMsg, double timeout,function<void(void)> timeoutHandler);
+
+    WaitForBroadcast(string broadcastMsg, double timeout);
+
+    WaitForBroadcast(string broadcastMsg);
+
+    virtual bool update(SpinInfo spinInfo);
+    virtual void reset();
+};
+
+class Broadcast : public Block
+{
+private:
+    string msg;
+public:
+    Broadcast(string msg);
+    bool update(SpinInfo spinInfo) override;
+
+    void reset() override;
 };
 
 }
