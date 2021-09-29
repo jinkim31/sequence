@@ -114,7 +114,7 @@ Sequence terminated.(Main Sequence)
 ### In embedded developments
 
 ```c++
-//make sure it's C++ project
+//make sure it's a C++ project
 
 /* USER CODE BEGIN Includes */
 #include "../../Sequence/inc/sequence.h"
@@ -130,11 +130,11 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	Sequence sequence
 	(
-        new block::LoopSequence(new Sequence
-        (
-            new block::Function([&]{sequenceCnt++;}),
-            new block::Delay(1)
-        ), []{return false;})
+		new block::LoopSequence(new LambdaCondition([]{return false;}), new Sequence
+		(
+		    new block::Function([&]{sequenceCnt++;}),
+		    new block::Delay(1)
+		))
 	);
 
 	sequence.compile();
