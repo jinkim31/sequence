@@ -105,7 +105,7 @@ void Sequence::start()
         running = true;
         finished = false;
         Sequence::ongoingBlock = blockList[currentStep];
-        Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
+        if(debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
         blockList[currentStep]->reset();
         blockList[currentStep]->startCallback();
     }
