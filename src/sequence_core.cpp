@@ -235,6 +235,17 @@ string Sequence::getCurrentBroadcast()
     return currentBroadcast;
 }
 
+void Sequence::startSequence(string sequenceName)
+{
+    for(Sequence* sequence : sequenceList)
+    {
+        if(sequence->getName() == sequenceName)
+        {
+            sequence->start();
+        }
+    }
+}
+
 
 seq::Block::Block()
 {

@@ -143,6 +143,8 @@ public:
     static void printDebug(string msg, bool line = false);
 
     static string getCurrentBroadcast();
+
+    static void startSequence(string sequenceName);
 };
 
 class Block

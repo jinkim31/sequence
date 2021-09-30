@@ -69,14 +69,14 @@ public:
 class WaitFor : public Block
 {
 private:
-    Condition* breakCondition;
+    Condition *breakCondition;
     Timeout timeout;
 public:
-    WaitFor(Condition* breakCondition, double timeout, function<void(void)> timeoutHandler);
+    WaitFor(Condition *breakCondition, double timeout, function<void(void)> timeoutHandler);
 
-    WaitFor(Condition* breakCondition, double timeout);
+    WaitFor(Condition *breakCondition, double timeout);
 
-    WaitFor(Condition* breakCondition);
+    WaitFor(Condition *breakCondition);
 
     virtual bool update(SpinInfo spinInfo);
 
@@ -110,13 +110,13 @@ class LoopSequence : public SequenceBlock
 {
 private:
     Timeout timeout;
-    Condition* breakCondition;
+    Condition *breakCondition;
 public:
-    LoopSequence(Condition* breakCondition, double timeout,function<void(void)> timeoutHandler, Sequence *sequence);
+    LoopSequence(Condition *breakCondition, double timeout, function<void(void)> timeoutHandler, Sequence *sequence);
 
-    LoopSequence(Condition* breakCondition, double timeout, Sequence *sequence);
+    LoopSequence(Condition *breakCondition, double timeout, Sequence *sequence);
 
-    LoopSequence(Condition* breakCondition, Sequence *sequence);
+    LoopSequence(Condition *breakCondition, Sequence *sequence);
 
     virtual bool update(SpinInfo spinInfo);
 
@@ -129,13 +129,14 @@ private:
     string broadcastWaitingFor;
     Timeout timeout;
 public:
-    WaitForBroadcast(string broadcastMsg, double timeout,function<void(void)> timeoutHandler);
+    WaitForBroadcast(string broadcastMsg, double timeout, function<void(void)> timeoutHandler);
 
     WaitForBroadcast(string broadcastMsg, double timeout);
 
     WaitForBroadcast(string broadcastMsg);
 
     virtual bool update(SpinInfo spinInfo);
+
     virtual void reset();
 
     virtual string generateDebugName();
@@ -147,6 +148,7 @@ private:
     string msg;
 public:
     Broadcast(string msg);
+
     virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
@@ -154,6 +156,17 @@ public:
     virtual string generateDebugName();
 };
 
+class StartSequence : public Block
+{
+private:
+    string sequenceName;
+public:
+    StartSequence(string sequenceName);
+
+    bool update(SpinInfo spinInfo) override;
+
+    void reset() override;
+};
 }
 }
 

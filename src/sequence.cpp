@@ -262,3 +262,17 @@ string seq::block::Broadcast::generateDebugName()
 {
     return "Broadcast("+msg+")";
 }
+
+bool seq::block::StartSequence::update(seq::SpinInfo spinInfo)
+{
+    Sequence::startSequence(sequenceName);
+    return true;
+}
+
+void seq::block::StartSequence::reset()
+{}
+
+seq::block::StartSequence::StartSequence(string sequenceName) : sequenceName(sequenceName)
+{
+
+}

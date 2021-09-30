@@ -14,30 +14,31 @@ int main(int argc, char **argv)
 
     Sequence sequence
     (
-        "main",
-        new block::LoopSequence(new BroadcastCondition("Stop"), 3,new Sequence
-        (
-            new block::Delay(10000)
-        )),
-        new block::Debug("stopped")
+    "main",
+    new block::StartSequence("print"),
+    new block::Delay(1.0),
+    new block::StartSequence("print"),
+    new block::Delay(1.0),
+    new block::StartSequence("print"),
+    new block::Delay(1.0),
+    new block::StartSequence("print"),
+    new block::Delay(1.0)
+    );
+    sequence.compile();
+
+    Sequence printSeq
+    (
+        "print",
+        new block::Debug("Hello there")
     );
 
-    sequence.compile(true);
+    printSeq.compile();
+
     sequence.start();
 
-    Sequence broadcaster
-    (
-        "broadcaster",
-        new block::Broadcast("Hi")
-    );
-
-    broadcaster.compile();
-
-    ros::Rate loopRate(10);
-
+    ros::Rate loopRate(100);
     while (ros::ok())
     {
-        //if(loopCnt++%100 == 30) Sequence::broadcast("Stop");
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
