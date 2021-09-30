@@ -15,25 +15,10 @@ int main(int argc, char **argv)
     Sequence sequence
     (
     "main",
-    new block::StartSequence("print"),
-    new block::Delay(1.0),
-    new block::StartSequence("print"),
-    new block::Delay(1.0),
-    new block::StartSequence("print"),
-    new block::Delay(1.0),
-    new block::StartSequence("print"),
-    new block::Delay(1.0)
+    new block::Debug("h"),
+    new block::Delay(1)
     );
-    sequence.compile();
-
-    Sequence printSeq
-    (
-        "print",
-        new block::Debug("Hello there")
-    );
-
-    printSeq.compile();
-
+    sequence.compile(true);
     sequence.start();
 
     ros::Rate loopRate(100);
@@ -42,5 +27,7 @@ int main(int argc, char **argv)
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
+
+        if(Sequence::getSequenceByName("main")->isFinished()) Sequence::getSequenceByName("main")->start();
     }
 }

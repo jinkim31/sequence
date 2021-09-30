@@ -246,6 +246,19 @@ void Sequence::startSequence(string sequenceName)
     }
 }
 
+Sequence* Sequence::getSequenceByName(string name)
+{
+    for(Sequence* sequence : sequenceList)
+    {
+        if(sequence->getName() == name)
+        {
+            return sequence;
+        }
+    }
+
+    return nullptr;
+}
+
 
 seq::Block::Block()
 {

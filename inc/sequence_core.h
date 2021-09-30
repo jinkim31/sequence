@@ -145,6 +145,8 @@ public:
     static string getCurrentBroadcast();
 
     static void startSequence(string sequenceName);
+
+    static Sequence* getSequenceByName(string name);
 };
 
 class Block
