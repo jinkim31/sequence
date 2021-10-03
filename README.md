@@ -111,6 +111,63 @@ Sequence started.(Main Sequence)
 Sequence terminated.(Main Sequence)
 ```
 
+### Broadcast Block
+
+```c++
+#include <ros/ros.h>
+#include <sequence.h>
+
+using namespace std;
+using namespace seq;
+
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "mission_control");
+    ros::NodeHandle nh;
+    ros::Rate loopRate(100);
+
+    Sequence mainSequence
+    (
+        "Main Sequence",
+        new block::Debug("Sequence start"),
+        new block::WaitForBroadcast("Broadcast!"),
+        new block::Debug("Sequence end")
+    );
+    mainSequence.compile(true);
+    mainSequence.start();
+    
+    Sequence broadcasterSequence
+    (
+        "Broadcaster Sequence",
+        new block::Delay(1.0),
+	new block::Broadcast("Broadcast!");
+    );
+    broadcasterSequence.compile(false);
+    broadcasterSequence.start();
+
+    while (ros::ok())
+    {
+        ros::spinOnce();
+        Sequence::spinOnce();
+        loopRate.sleep();
+    }
+    return 0;
+}
+
+```
+
+Result
+
+```
+Sequence started.(Main Sequence)
+|___Debug(Sequence start)
+|>  Sequence start
+|___WaitForBroadcast(Broadcast!)
+|___Debug(Sequence start)
+|>  Sequence end
+Sequence terminated.(Main Sequence)
+```
+
 ### Broadcast
 
 ```c++
