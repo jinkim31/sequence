@@ -36,7 +36,8 @@ protected:
 public:
     Publish(T *msg, string topic, int queueSize) : msg(msg), topic(topic), queueSize(queueSize)
     {
-
+        ros::NodeHandle nh;
+        publisher = nh.advertise<T>(topic, queueSize);
     }
 
     virtual void startCallback()
