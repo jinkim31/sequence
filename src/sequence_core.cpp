@@ -69,7 +69,7 @@ bool Sequence::update(SpinInfo spinInfo)
             if (currentStep < blockList.size())
             {
                 Sequence::ongoingBlock = blockList[currentStep];
-                if (debug)Sequence::printDebug(blockList[currentStep]->generateDebugName() +" layer:"+ to_string(hierarchyLevel), true);
+                if (debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
                 blockList[currentStep]->reset();
                 blockList[currentStep]->startCallback();
             }
