@@ -60,7 +60,6 @@ bool Sequence::update(SpinInfo spinInfo)
     while (true)
     {
         //cout<<"calling "<<blockList[currentStep]->generateDebugName()<<endl;
-        Sequence::ongoingBlock = blockList[currentStep];
         if (blockList[currentStep]->update(spinInfo))
         {
             //step
@@ -69,7 +68,8 @@ bool Sequence::update(SpinInfo spinInfo)
             //reset the block, call callback
             if (currentStep < blockList.size())
             {
-                if (debug)Sequence::printDebug(blockList[currentStep]->generateDebugName(), true);
+                Sequence::ongoingBlock = blockList[currentStep];
+                if (debug)Sequence::printDebug(blockList[currentStep]->generateDebugName() +" layer:"+ to_string(hierarchyLevel), true);
                 blockList[currentStep]->reset();
                 blockList[currentStep]->startCallback();
             }

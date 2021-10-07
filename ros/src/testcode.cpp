@@ -5,6 +5,20 @@
 using namespace std;
 using namespace seq;
 
+class TestSequence :public block::SequenceBlock
+{
+public:
+    TestSequence() : SequenceBlock(new Sequence
+    (
+        "test sequence",
+        new block::Debug("1"),
+        new block::Debug("2")
+    ))
+    {
+
+    }
+};
+
 int main(int argc, char **argv)
 {
     int loopCnt = 0;
@@ -15,9 +29,11 @@ int main(int argc, char **argv)
     Sequence sequence
     (
     "main",
-    new block::Debug("h"),
-    new block::Delay(1)
+    new TestSequence(),
+    new TestSequence(),
+    new TestSequence
     );
+
     sequence.compile(true);
     sequence.start();
 
@@ -27,7 +43,5 @@ int main(int argc, char **argv)
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
-
-        if(Sequence::getSequenceByName("main")->isFinished()) Sequence::getSequenceByName("main")->start();
     }
 }
