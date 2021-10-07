@@ -165,6 +165,7 @@ bool seq::block::LoopSequence::update(SpinInfo spinInfo)
     if (timeout.addTime(spinInfo.timeDelta))
     {
         Sequence::printDebug("timed out");
+        sequence->stop();
         return true;//tined out. forced finish
     }
     if (sequence->update(spinInfo))//inner sequence finished

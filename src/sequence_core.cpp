@@ -73,7 +73,7 @@ bool Sequence::update(SpinInfo spinInfo)
                 blockList[currentStep]->reset();
                 blockList[currentStep]->startCallback();
             }
-            //Check for end of the sequence.
+            //End of the sequence.
             else
             {
                 stop();
@@ -118,6 +118,10 @@ void Sequence::suspend()
 
 void Sequence::stop()
 {
+    if(currentStep < blockList.size())
+    {
+        blockList[currentStep]->endCallback();
+    }
     running = false;
     currentStep = 0;
 }
