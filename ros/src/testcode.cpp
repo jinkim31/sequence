@@ -27,11 +27,10 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     Sequence sequence
-    (
-    "main",
-    new TestSequence(),
-    new TestSequence(),
-    new TestSequence
+    ("main",
+     new block::Delay(1),
+     new block_ros::TerminalCommand("gnome-terminal sh 'cd /tmp ; ls -la'"),
+     new block::Delay(1)
     );
 
     sequence.compile(true);

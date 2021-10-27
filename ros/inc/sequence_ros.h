@@ -172,6 +172,17 @@ public:
     }
 };
 
+class TerminalCommand : public Block
+{
+private:
+    string command;
+public:
+    TerminalCommand(string command);
+    virtual bool update(SpinInfo spinInfo);
+
+    virtual void reset();
+};
+
 class NavGoal : public Publish<geometry_msgs::PoseStamped>
 {
 public:
