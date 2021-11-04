@@ -17,3 +17,10 @@ block_ros::TerminalCommand::TerminalCommand(string command) : command(command)
 {
 
 }
+
+string block_ros::TerminalCommand::generateDebugName()
+{
+    return "Terminal command(" + command + ")";
+}
+
+

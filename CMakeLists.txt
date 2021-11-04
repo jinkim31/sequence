@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(sequence)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         std_msgs
@@ -18,7 +20,8 @@ add_library(${PROJECT_NAME} STATIC
         src/sequence_core.cpp
         src/sequence.cpp
         src/util.cpp
-        ros/src/sequence_ros.cpp)
+        ros/src/sequence_ros.cpp
+        )
 
 add_executable(testcode ros/src/testcode.cpp)
 target_link_libraries(testcode ${catkin_LIBRARIES} sequence)

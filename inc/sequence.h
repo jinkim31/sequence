@@ -147,7 +147,7 @@ class Broadcast : public Block
 private:
     string msg;
 public:
-    Broadcast(string msg);
+    Broadcast(string msg, bool global = true);
 
     virtual bool update(SpinInfo spinInfo);
 

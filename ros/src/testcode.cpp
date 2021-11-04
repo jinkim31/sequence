@@ -5,36 +5,23 @@
 using namespace std;
 using namespace seq;
 
-class TestSequence :public block::SequenceBlock
+class Var
 {
 public:
-    TestSequence() : SequenceBlock(new Sequence
-    (
-        "test sequence",
-        new block::Debug("1"),
-        new block::Debug("2")
-    ))
-    {
-
-    }
+    int a;
 };
 
 int main(int argc, char **argv)
 {
-    int loopCnt = 0;
-
     ros::init(argc, argv, "sequence_test_node");
     ros::NodeHandle nh;
 
-    Sequence sequence
-    ("main",
-     new block::Delay(1),
-     new block_ros::TerminalCommand("gnome-terminal sh 'cd /tmp ; ls -la'"),
-     new block::Delay(1)
-    );
-
-    sequence.compile(true);
-    sequence.start();
+    Sequence sequence(new block::Delay(1.0));
+    shared_ptr<Variable<int>> intVar = make_shared<Variable<int>>("testvar",123);
+    sequence.addVariable(intVar);
+    cout<<"value:"<<sequence.getVariable<int>("testvar")->get()<<endl;
+    sequence.getVariable<int>("testvar")->set(456);
+    cout<<"value:"<<sequence.getVariable<int>("testvar")->get()<<endl;
 
     ros::Rate loopRate(100);
     while (ros::ok())

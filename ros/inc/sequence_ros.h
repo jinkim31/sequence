@@ -181,6 +181,8 @@ public:
     virtual bool update(SpinInfo spinInfo);
 
     virtual void reset();
+
+    string generateDebugName() override;
 };
 
 class NavGoal : public Publish<geometry_msgs::PoseStamped>

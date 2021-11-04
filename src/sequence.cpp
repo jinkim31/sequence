@@ -255,7 +255,7 @@ void seq::block::Broadcast::reset()
 
 }
 
-seq::block::Broadcast::Broadcast(string msg) : msg(msg)
+seq::block::Broadcast::Broadcast(string msg, bool global) : msg(msg)
 {
 }
 

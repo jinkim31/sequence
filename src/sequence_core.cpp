@@ -263,6 +263,10 @@ Sequence* Sequence::getSequenceByName(string name)
     return nullptr;
 }
 
+void Sequence::addVariable(shared_ptr<IVariable> variableUnique)
+{
+    variableList.push_back(variableUnique);
+}
 
 seq::Block::Block()
 {

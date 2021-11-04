@@ -9,6 +9,7 @@
 #include <cstdarg>
 #include <chrono>
 #include <stdexcept>
+#include <memory>
 #include "util.h"
 
 using namespace std;
@@ -29,10 +30,33 @@ struct SpinInfo
 {
     double timeDelta;
     string broadcastMsg;
+    bool isGlobal;
 };
 
 /*Classes*/
 class Block;//forward declaration
+
+class IVariable
+{
+private:
+    string id;
+public:
+    IVariable(string id) : id(id){}
+    virtual ~IVariable() {}
+    string getId(){return id;}
+};
+
+template <typename T>
+class Variable : public IVariable
+{
+private:
+    T val;
+    T initialVal;
+public:
+    Variable(string id, T initialVal): IVariable(id), initialVal(initialVal){val = initialVal;}
+    void set(T val){this->val = val;}
+    T get(){return val;};
+};
 
 class BroadcastCondition : public Condition
 {
@@ -47,6 +71,7 @@ class Sequence
 {
 private:
     vector<Block *> blockList;
+    vector<shared_ptr<IVariable>> variableList;
     string name;
     bool isOrigin;
     int currentStep;
@@ -56,9 +81,6 @@ private:
     bool debug;
     unsigned int hierarchyLevel;
     bool isCompiled;
-    static double timeLastUpdate;
-    static queue<string> broadcastQueue;
-    static string currentBroadcast;
 
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
@@ -82,8 +104,12 @@ private:
         return;
     }
 
+    static double timeLastUpdate;
+    static queue<string> broadcastQueue;
+    static string currentBroadcast;
     static vector<Sequence *> sequenceList;
     static Block *ongoingBlock;
+
 public:
     template<typename... BlockPtrs>
     Sequence(BlockPtrs... blockPtrs)
@@ -134,6 +160,23 @@ public:
 
     void print();
 
+    void addVariable(shared_ptr<IVariable> variableUnique);
+
+    template<typename T>
+    shared_ptr<Variable<T>> getVariable(string id)
+    {
+        shared_ptr<IVariable> g;
+
+        vector<shared_ptr<IVariable>>::iterator iter;
+        for(iter = variableList.begin(); iter != variableList.end(); iter++)
+        {
+            if((*iter)->getId() == id)
+            {
+                return dynamic_pointer_cast<Variable<T>>(*iter);
+            }
+        }
+    }
+
     static void spinOnce();
 
     static void spinOnce(double loopRate);
@@ -173,5 +216,6 @@ public:
 
     virtual void print();
 };
+
 }
 #endif
