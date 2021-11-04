@@ -116,6 +116,11 @@ seq::block::SequenceBlock::SequenceBlock(shared_ptr<Sequence> sequence)
     sequence->setAsOrigin(false);
 }
 
+seq::block::SequenceBlock::SequenceBlock()
+{
+
+}
+
 seq::block::SequenceBlock::~SequenceBlock()
 {
 
@@ -145,6 +150,12 @@ void seq::block::SequenceBlock::print()
 {
     Sequence::printDebug(generateDebugName(), true);
     sequence->print();
+}
+
+void seq::block::SequenceBlock::setSequence(shared_ptr<Sequence> sequence)
+{
+    this->sequence = sequence;
+    sequence->setAsOrigin(false);
 }
 
 seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, double timeout,function<void(void)> timeoutHandler, shared_ptr<Sequence> sequence) : SequenceBlock(sequence)

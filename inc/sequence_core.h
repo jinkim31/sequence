@@ -43,6 +43,7 @@ private:
 public:
     IVariable(string id) : id(id){}
     virtual ~IVariable() {}
+    virtual void init() = 0;
     string getId(){return id;}
 };
 
@@ -52,11 +53,14 @@ class Variable : public IVariable
 private:
     T val;
     T initialVal;
+    bool initValueDefined;
 public:
-    Variable(string id, T initialVal): IVariable(id), initialVal(initialVal){val = initialVal;}
+    Variable(string id, T initialVal): IVariable(id), initialVal(initialVal){val = initialVal; initValueDefined = true;}
+    Variable(string id) : IVariable(id){initValueDefined = false;};
     virtual ~Variable(){}
     void set(T val){this->val = val;}
-    T get(){return val;};
+    T& get(){return val;};
+    void init() override{if(initValueDefined) val = initialVal;}
 };
 
 class BroadcastCondition : public Condition
@@ -106,6 +110,7 @@ private:
         return;
     }
 
+    void initVariables();
     static double timeLastUpdate;
     static queue<string> broadcastQueue;
     static string currentBroadcast;
@@ -180,6 +185,7 @@ public:
         shared_ptr<IVariable> g;
 
         vector<shared_ptr<IVariable>>::iterator iter;
+        //cout<<variableList.size()<<" variables (get)"<<endl;
         for(iter = variableList.begin(); iter != variableList.end(); iter++)
         {
             if((*iter)->getId() == id)

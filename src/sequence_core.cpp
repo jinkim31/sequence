@@ -265,6 +265,17 @@ Sequence* Sequence::getSequenceByName(string name)
 void Sequence::addVariable(shared_ptr<IVariable> variableUnique)
 {
     variableList.push_back(variableUnique);
+    //cout<<variableList.size()<<" variables (add)"<<endl;
+}
+
+void Sequence::initVariables()
+{
+    vector<shared_ptr<IVariable>>::iterator iter;
+
+    for(iter = variableList.begin(); iter != variableList.end(); iter++)
+    {
+        (*iter)->init();
+    }
 }
 
 seq::Block::Block()

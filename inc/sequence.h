@@ -90,10 +90,13 @@ class SequenceBlock : public Block
 private:
 protected:
     shared_ptr<Sequence> sequence;
+    SequenceBlock();
 public:
     SequenceBlock(shared_ptr<Sequence> sequence);
 
     ~SequenceBlock();
+
+    void setSequence(shared_ptr<Sequence> sequence);
 
     virtual bool update(SpinInfo spinInfo);
 

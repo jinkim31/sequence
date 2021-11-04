@@ -68,16 +68,14 @@ class Subscribe : public Block
 private:
     bool done;
     ros::Subscriber subscriber;
+    queue<T> msgQueue;
     function<bool(const T &)> userCallback;
     string topic;
     int queueSize;
 
     void callback(const T &msg)
     {
-        if (userCallback(msg))
-        {
-            done = true;
-        }
+        msgQueue.push(msg);
     }
 
 protected:
@@ -118,6 +116,14 @@ public:
     {
         //if(subscriber.getNumPublishers()==0) ROS_WARN("[Sequence] Subscriber(%s %s) is not subscribing any publisher.\n", typeid(T).name(), topic.c_str());
         ros::spinOnce();
+
+        bool done = false;
+        while(!msgQueue.empty())
+        {
+            if(userCallback(msgQueue.front())) done = true;
+            msgQueue.pop();
+        }
+
         return done;
     }
 
@@ -282,6 +288,10 @@ public:
     make_shared<WaitForNavReach>()
     ))
     {}
+
+
+
+
 
     virtual string generateDebugName()
     {

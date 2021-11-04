@@ -5,10 +5,15 @@
 using namespace std;
 using namespace seq;
 
-class Var
+class TestBlock : public block::SequenceBlock
 {
 public:
-    int a;
+    TestBlock():SequenceBlock()
+    {
+        shared_ptr<Sequence> sequence = make_shared<Sequence>();
+        sequence->compose("test", make_shared<block::Debug>("hi"));
+        setSequence(sequence);
+    }
 };
 
 int main(int argc, char **argv)
@@ -18,7 +23,12 @@ int main(int argc, char **argv)
 
     Sequence sequence;
     sequence.addVariable(make_shared<Variable<int>>("testvar",123));
-    sequence.compose(make_shared<block::Delay>(1.0));
+    sequence.compose
+    (
+        "main",
+        make_shared<block::Debug>("hello"),
+        make_shared<TestBlock>()
+    );
     sequence.compile(true);
     sequence.start();
 
