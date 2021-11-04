@@ -1,4 +1,4 @@
-#include "../inc/util.h"
+#include "../inc/sequence_util.h"
 
 seq::Timeout::Timeout(double timeSec, function<void(void)> timeoutHandler)
 {

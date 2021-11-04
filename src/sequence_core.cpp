@@ -3,7 +3,7 @@
 using namespace seq;
 
 vector<Sequence *> Sequence::sequenceList;
-Block *Sequence::ongoingBlock;
+shared_ptr<Block> Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
 queue<string> Sequence::broadcastQueue;
 string Sequence::currentBroadcast;
@@ -16,7 +16,6 @@ bool seq::BroadcastCondition::evaluate()
 {
     return Sequence::getCurrentBroadcast() == msg;
 }
-
 
 Sequence::~Sequence()
 {
@@ -33,7 +32,7 @@ unsigned int seq::Sequence::getHierarchyLevel()
     return hierarchyLevel;
 }
 
-void Sequence::add(Block *block)
+void Sequence::add(shared_ptr<Block> block)
 {
     if (isCompiled)
     {
@@ -44,11 +43,6 @@ void Sequence::add(Block *block)
 
 void Sequence::clear()
 {
-    //cout<<"clearing sequence"<<endl;
-    for (Block *block: blockList)
-    {
-        delete (block);
-    }
     blockList.clear();
     currentStep = 0;
 }
@@ -149,7 +143,7 @@ void Sequence::init(bool debug)
     }
 
     this->debug = debug;
-    for (Block *block: blockList)
+    for (shared_ptr<Block> block: blockList)
     {
         block->setContainerSequence(this);
         block->init(debug);
@@ -166,7 +160,7 @@ void Sequence::print()
 {
     //if(isOrigin && !isCompiled) throw InvalidOperation("init before print.");
     if (isOrigin)cout << string("Origin(") + name + string(")") << endl;
-    for (Block *block: blockList)
+    for (shared_ptr<Block> block: blockList)
     {
         block->print();
     }

@@ -2,7 +2,7 @@
 #define SEQUENCE_SEQUENCE_H
 
 #include "sequence_core.h"
-#include "util.h"
+#include "sequence_util.h"
 
 using namespace std;
 

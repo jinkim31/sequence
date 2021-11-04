@@ -1,5 +1,5 @@
-#ifndef SEQUENCE_UTIL_H
-#define SEQUENCE_UTIL_H
+#ifndef SEQUENCE_SEQUENCE_UTIL_H
+#define SEQUENCE_SEQUENCE_UTIL_H
 
 #include <iostream>
 #include <functional>
@@ -51,4 +51,4 @@ public:
 };
 
 }
-#endif //SEQUENCE_UTIL_H
+#endif //SEQUENCE_SEQUENCE_UTIL_H

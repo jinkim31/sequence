@@ -278,8 +278,8 @@ class WaitForNavReachLatched : public block::SequenceBlock
 public:
     WaitForNavReachLatched() : block::SequenceBlock(new Sequence
     (
-    new WaitForNavStart,
-    new WaitForNavReach
+    make_shared<WaitForNavStart>(),
+    make_shared<WaitForNavReach>()
     ))
     {}
 

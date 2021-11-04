@@ -10,7 +10,7 @@
 #include <chrono>
 #include <stdexcept>
 #include <memory>
-#include "util.h"
+#include "sequence_util.h"
 
 using namespace std;
 
@@ -54,6 +54,7 @@ private:
     T initialVal;
 public:
     Variable(string id, T initialVal): IVariable(id), initialVal(initialVal){val = initialVal;}
+    virtual ~Variable(){}
     void set(T val){this->val = val;}
     T get(){return val;};
 };
@@ -70,7 +71,7 @@ public:
 class Sequence
 {
 private:
-    vector<Block *> blockList;
+    vector<shared_ptr<Block>> blockList;
     vector<shared_ptr<IVariable>> variableList;
     string name;
     bool isOrigin;
@@ -91,14 +92,14 @@ private:
     }
 
     template<typename... BlockPtrs>
-    void addArgs(Block *blockPtr, BlockPtrs... blockPtrs)
+    void addArgs(shared_ptr<Block> blockPtr, BlockPtrs... blockPtrs)
     {
         add(blockPtr);
         addArgs(blockPtrs...);
     }
 
     //End of recursion. Push final argument.
-    void addArgs(Block *blockPtr)
+    void addArgs(shared_ptr<Block> blockPtr)
     {
         add(blockPtr);
         return;
@@ -108,11 +109,10 @@ private:
     static queue<string> broadcastQueue;
     static string currentBroadcast;
     static vector<Sequence *> sequenceList;
-    static Block *ongoingBlock;
+    static shared_ptr<Block> ongoingBlock;
 
 public:
-    template<typename... BlockPtrs>
-    Sequence(BlockPtrs... blockPtrs)
+    Sequence()
     {
         timeLastUpdate = -1;
         currentStep = 0;
@@ -123,10 +123,21 @@ public:
         isOrigin = false;
         isCompiled = false;
         name = "unnamed sequence";
+    }
+
+    template<typename... BlockPtrs>
+    Sequence(BlockPtrs... blockPtrs) : Sequence()
+    {
         addArgs(blockPtrs...);
     }
 
     ~Sequence();
+
+    template<typename... BlockPtrs>
+    void compose(BlockPtrs... blockPtrs)
+    {
+        addArgs(blockPtrs...);
+    }
 
     void compile(bool debug = false);
 
@@ -141,7 +152,7 @@ public:
 
     unsigned int getHierarchyLevel();
 
-    void add(Block *block);
+    void add(shared_ptr<Block> block);
 
     void clear();
 
@@ -199,6 +210,7 @@ protected:
 public:
 
     Block();
+    ~Block(){cout<<"destructir block"<<endl;}
 
     void setContainerSequence(Sequence *sequence);
 

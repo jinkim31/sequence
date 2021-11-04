@@ -19,7 +19,7 @@ include_directories(
 add_library(${PROJECT_NAME} STATIC
         src/sequence_core.cpp
         src/sequence.cpp
-        src/util.cpp
+        src/sequence_util.cpp
         ros/src/sequence_ros.cpp
         )
 
@@ -29,7 +29,7 @@ target_link_libraries(testcode ${catkin_LIBRARIES} sequence)
 target_include_directories(${PROJECT_NAME} PUBLIC
         inc/sequence_core.h
         inc/sequence.h
-        inc/util.h
+        inc/sequence_util.h
         ros/inc/sequence_ros.h)
 
 install(TARGETS ${PROJECT_NAME}
