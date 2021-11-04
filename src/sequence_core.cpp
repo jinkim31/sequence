@@ -17,6 +17,11 @@ bool seq::BroadcastCondition::evaluate()
     return Sequence::getCurrentBroadcast() == msg;
 }
 
+BroadcastCondition::~BroadcastCondition()
+{
+
+}
+
 Sequence::~Sequence()
 {
     clear();

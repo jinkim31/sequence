@@ -52,3 +52,8 @@ bool seq::LambdaCondition::evaluate()
 seq::LambdaCondition::LambdaCondition(function<bool(void)> condition) : condition(condition)
 {
 }
+
+seq::LambdaCondition::~LambdaCondition()
+{
+
+}

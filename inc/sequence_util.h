@@ -47,6 +47,7 @@ private:
     function<bool(void)> condition;
 public:
     LambdaCondition(function<bool(void)> condition);
+    ~LambdaCondition();
     virtual bool evaluate();
 };
 

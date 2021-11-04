@@ -65,6 +65,7 @@ private:
     string msg;
 public:
     BroadcastCondition(string msg);
+    ~BroadcastCondition();
     virtual bool evaluate();
 };
 

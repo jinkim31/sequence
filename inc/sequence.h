@@ -69,14 +69,14 @@ public:
 class WaitFor : public Block
 {
 private:
-    Condition *breakCondition;
+    shared_ptr<Condition> breakCondition;
     Timeout timeout;
 public:
-    WaitFor(Condition *breakCondition, double timeout, function<void(void)> timeoutHandler);
+    WaitFor(shared_ptr<Condition> breakCondition, double timeout, function<void(void)> timeoutHandler);
 
-    WaitFor(Condition *breakCondition, double timeout);
+    WaitFor(shared_ptr<Condition> breakCondition, double timeout);
 
-    WaitFor(Condition *breakCondition);
+    WaitFor(shared_ptr<Condition> breakCondition);
 
     virtual bool update(SpinInfo spinInfo);
 
@@ -89,9 +89,9 @@ class SequenceBlock : public Block
 {
 private:
 protected:
-    Sequence *sequence;
+    shared_ptr<Sequence> sequence;
 public:
-    SequenceBlock(Sequence *sequence);
+    SequenceBlock(shared_ptr<Sequence> sequence);
 
     ~SequenceBlock();
 
@@ -110,13 +110,13 @@ class LoopSequence : public SequenceBlock
 {
 private:
     Timeout timeout;
-    Condition *breakCondition;
+    shared_ptr<Condition> breakCondition;
 public:
-    LoopSequence(Condition *breakCondition, double timeout, function<void(void)> timeoutHandler, Sequence *sequence);
+    LoopSequence(shared_ptr<Condition> breakCondition, double timeout, function<void(void)> timeoutHandler, shared_ptr<Sequence> sequence);
 
-    LoopSequence(Condition *breakCondition, double timeout, Sequence *sequence);
+    LoopSequence(shared_ptr<Condition> breakCondition, double timeout, shared_ptr<Sequence> sequence);
 
-    LoopSequence(Condition *breakCondition, Sequence *sequence);
+    LoopSequence(shared_ptr<Condition> breakCondition, shared_ptr<Sequence> sequence);
 
     virtual bool update(SpinInfo spinInfo);
 

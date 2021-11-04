@@ -65,18 +65,18 @@ string seq::block::Function::generateDebugName()
     return "Function";
 }
 
-seq::block::WaitFor::WaitFor(Condition* breakCondition, double timeout, function<void(void)> timeoutHandler)
+seq::block::WaitFor::WaitFor(shared_ptr<Condition> breakCondition, double timeout, function<void(void)> timeoutHandler)
 {
     this->breakCondition = breakCondition;
     this->timeout.setTime(timeout);
     this->timeout.setTimeoutHandler(timeoutHandler);
 }
 
-seq::block::WaitFor::WaitFor(Condition* breakCondition, double timeout) : WaitFor(breakCondition, timeout,
+seq::block::WaitFor::WaitFor(shared_ptr<Condition> breakCondition, double timeout) : WaitFor(breakCondition, timeout,
 NULL)
 {}
 
-seq::block::WaitFor::WaitFor(Condition* breakCondition) : WaitFor(breakCondition, -1.0)
+seq::block::WaitFor::WaitFor(shared_ptr<Condition> breakCondition) : WaitFor(breakCondition, -1.0)
 {}
 
 bool seq::block::WaitFor::update(SpinInfo spinInfo)
@@ -110,7 +110,7 @@ string seq::block::WaitFor::generateDebugName()
     return name;
 }
 
-seq::block::SequenceBlock::SequenceBlock(Sequence *sequence)
+seq::block::SequenceBlock::SequenceBlock(shared_ptr<Sequence> sequence)
 {
     this->sequence = sequence;
     sequence->setAsOrigin(false);
@@ -118,7 +118,7 @@ seq::block::SequenceBlock::SequenceBlock(Sequence *sequence)
 
 seq::block::SequenceBlock::~SequenceBlock()
 {
-    delete (sequence);
+
 }
 
 bool seq::block::SequenceBlock::update(SpinInfo spinInfo)
@@ -147,17 +147,17 @@ void seq::block::SequenceBlock::print()
     sequence->print();
 }
 
-seq::block::LoopSequence::LoopSequence(Condition* breakCondition, double timeout,function<void(void)> timeoutHandler, Sequence *sequence) : SequenceBlock(sequence)
+seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, double timeout,function<void(void)> timeoutHandler, shared_ptr<Sequence> sequence) : SequenceBlock(sequence)
 {
     this->breakCondition = breakCondition;
     this->timeout.setTime(timeout);
     this->timeout.setTimeoutHandler(timeoutHandler);
 }
 
-seq::block::LoopSequence::LoopSequence(Condition* breakCondition, double timeout, Sequence *sequence): LoopSequence(breakCondition, timeout, NULL, sequence)
+seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, double timeout, shared_ptr<Sequence> sequence): LoopSequence(breakCondition, timeout, NULL, sequence)
 {}
 
-seq::block::LoopSequence::LoopSequence(Condition* breakCondition, Sequence *sequence) : LoopSequence(breakCondition, -1.0, sequence)
+seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, shared_ptr<Sequence> sequence) : LoopSequence(breakCondition, -1.0, sequence)
 {}
 
 bool seq::block::LoopSequence::update(SpinInfo spinInfo)
