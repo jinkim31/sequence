@@ -190,9 +190,13 @@ public:
         {
             if((*iter)->getId() == id)
             {
+                cout<<"found variable"<<endl;
                 return dynamic_pointer_cast<Variable<T>>(*iter);
             }
         }
+
+        cout<<"no variable named "<<id<<"found"<<endl;
+        return shared_ptr<Variable<T>>(nullptr);
     }
 
     static void spinOnce();
@@ -208,6 +212,8 @@ public:
     static void startSequence(string sequenceName);
 
     static Sequence* getSequenceByName(string name);
+
+    static Sequence* thisSequence();
 };
 
 class Block

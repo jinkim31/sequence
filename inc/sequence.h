@@ -27,9 +27,9 @@ public:
 class Debug : public Block
 {
 private:
-    std::string text;
+    string text;
 public:
-    Debug(const std::string &text);
+    Debug(const string &text);
 
     virtual bool update(SpinInfo spinInfo);
 

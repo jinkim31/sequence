@@ -165,11 +165,11 @@ void Sequence::print()
 {
     //if(isOrigin && !isCompiled) throw InvalidOperation("init before print.");
     if (isOrigin)cout << string("Origin(") + name + string(")") << endl;
+    else cout << string("Inner(") + name + string(")") << endl;
     for (shared_ptr<Block> block: blockList)
     {
         block->print();
     }
-    if (isOrigin)cout << string("Origin(") + name + string(")") << endl;
 }
 
 void Sequence::spinOnce()
@@ -278,6 +278,11 @@ void Sequence::initVariables()
     }
 }
 
+Sequence *Sequence::thisSequence()
+{
+    return ongoingBlock->getContainerSequence();
+}
+
 seq::Block::Block()
 {
     containerSequence = nullptr;
@@ -313,7 +318,7 @@ void Block::print()
     Sequence::printDebug(generateDebugName(), true);
 }
 
-Sequence *Block::getContainerSequence()
+Sequence* Block::getContainerSequence()
 {
     return containerSequence;
 }

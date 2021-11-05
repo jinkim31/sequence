@@ -26,7 +26,6 @@ int main(int argc, char **argv)
     sequence.compose
     (
         "main",
-        make_shared<block::Debug>("hello"),
         make_shared<TestBlock>()
     );
     sequence.compile(true);
