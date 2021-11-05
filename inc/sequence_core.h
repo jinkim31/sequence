@@ -190,12 +190,12 @@ public:
         {
             if((*iter)->getId() == id)
             {
-                cout<<"found variable"<<endl;
+                //cout<<"found variable"<<endl;
                 return dynamic_pointer_cast<Variable<T>>(*iter);
             }
         }
 
-        cout<<"no variable named "<<id<<"found"<<endl;
+        //cout<<"no variable named "<<id<<"found"<<endl;
         return shared_ptr<Variable<T>>(nullptr);
     }
 
