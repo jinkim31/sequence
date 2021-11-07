@@ -195,7 +195,7 @@ public:
             }
         }
 
-        //cout<<"no variable named "<<id<<"found"<<endl;
+        std::cerr<<"[ Sequence ] No variable with ID "<<id<<" found."<<endl;
         return shared_ptr<Variable<T>>(nullptr);
     }
 
