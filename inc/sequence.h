@@ -121,6 +121,8 @@ public:
 
     LoopSequence(shared_ptr<Condition> breakCondition, shared_ptr<Sequence> sequence);
 
+    void reset() override;
+
     virtual bool update(SpinInfo spinInfo);
 
     virtual string generateDebugName();

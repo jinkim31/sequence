@@ -57,3 +57,8 @@ seq::LambdaCondition::~LambdaCondition()
 {
 
 }
+
+void seq::LambdaCondition::reset()
+{
+
+}

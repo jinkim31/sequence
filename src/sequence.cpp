@@ -99,6 +99,7 @@ bool seq::block::WaitFor::update(SpinInfo spinInfo)
 void seq::block::WaitFor::reset()
 {
     timeout.reset();
+    breakCondition->reset();
 }
 
 string seq::block::WaitFor::generateDebugName()
@@ -201,6 +202,12 @@ string seq::block::LoopSequence::generateDebugName()
     return name;
 }
 
+void seq::block::LoopSequence::reset()
+{
+    SequenceBlock::reset();
+    breakCondition->reset();
+}
+
 seq::block::Debug::Debug(const string &text) : text(text)
 {}
 
@@ -242,7 +249,8 @@ bool seq::block::WaitForBroadcast::update(seq::SpinInfo spinInfo)
         Sequence::printDebug("timeout");
         return true;
     }
-    return spinInfo.broadcastMsg == broadcastWaitingFor;
+    //return spinInfo.broadcastMsg == broadcastWaitingFor;
+    return false;
 }
 
 void seq::block::WaitForBroadcast::reset()
@@ -257,7 +265,7 @@ string seq::block::WaitForBroadcast::generateDebugName()
 
 bool seq::block::Broadcast::update(seq::SpinInfo spinInfo)
 {
-    Sequence::broadcast(msg);
+    Sequence::broadcast.broadcast(msg);
     return true;
 }
 

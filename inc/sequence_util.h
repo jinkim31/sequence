@@ -39,6 +39,7 @@ class Condition
 {
 public:
     virtual bool evaluate() = 0;
+    virtual void reset() = 0;
 };
 
 class LambdaCondition : public Condition
@@ -49,6 +50,8 @@ public:
     LambdaCondition(function<bool(void)> condition);
     ~LambdaCondition();
     virtual bool evaluate();
+
+    void reset() override;
 };
 
 }

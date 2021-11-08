@@ -5,21 +5,27 @@ using namespace seq;
 vector<Sequence *> Sequence::sequenceList;
 shared_ptr<Block> Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
-queue<string> Sequence::broadcastQueue;
-string Sequence::currentBroadcast;
+Broadcast Sequence::broadcast;
 
 seq::BroadcastCondition::BroadcastCondition(string msg) : msg(msg)
 {
+    triggered = false;
+    Sequence::broadcast.addBroadcastListener(make_shared<Broadcast::BroadcastListener>(msg, [&]{triggered= true;}));
 }
 
 bool seq::BroadcastCondition::evaluate()
 {
-    return Sequence::getCurrentBroadcast() == msg;
+    return triggered;
 }
 
 BroadcastCondition::~BroadcastCondition()
 {
 
+}
+
+void BroadcastCondition::reset()
+{
+    triggered = false;
 }
 
 Sequence::~Sequence()
@@ -208,16 +214,6 @@ void Sequence::spinOnce(double loopRate)
 {
     SpinInfo spinInfo;
     spinInfo.timeDelta = loopRate;
-    if(broadcastQueue.empty())
-    {
-        spinInfo.broadcastMsg="";
-    }
-    else
-    {
-        spinInfo.broadcastMsg = broadcastQueue.front();
-        currentBroadcast = broadcastQueue.front();
-        broadcastQueue.pop();
-    }
 
     for (Sequence *sequence: sequenceList)
     {
@@ -226,16 +222,6 @@ void Sequence::spinOnce(double loopRate)
 
         }
     }
-}
-
-void Sequence::broadcast(string msg)
-{
-    Sequence::broadcastQueue.push(msg);
-}
-
-string Sequence::getCurrentBroadcast()
-{
-    return currentBroadcast;
 }
 
 void Sequence::startSequence(string sequenceName)

@@ -22,11 +22,23 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     Sequence sequence;
-    sequence.addVariable(make_shared<Variable<int>>("testvar",123));
+    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
     sequence.compose
     (
-        "main",
-        make_shared<TestBlock>()
+    make_shared<block::LoopSequence>(make_shared<BroadcastCondition>("break"), make_shared<Sequence>
+    (
+        make_shared<block::Function>([&]
+        {
+            int& cnt = sequence.getVariable<int>("cnt") ->get();
+            cnt++;
+            Sequence::printDebug(to_string(cnt));
+            if(cnt>=10)
+            {
+                Sequence::broadcast.broadcast("break");
+            }
+        }),
+        make_shared<block::Delay>(0.3)
+    ))
     );
     sequence.compile(true);
     sequence.start();

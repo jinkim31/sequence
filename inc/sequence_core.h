@@ -29,12 +29,11 @@ public:
 struct SpinInfo
 {
     double timeDelta;
-    string broadcastMsg;
-    bool isGlobal;
 };
 
 /*Classes*/
 class Block;//forward declaration
+class Broadcast;;//forward declaration
 
 class IVariable
 {
@@ -67,10 +66,13 @@ class BroadcastCondition : public Condition
 {
 private:
     string msg;
+    bool triggered;
 public:
     BroadcastCondition(string msg);
     ~BroadcastCondition();
     virtual bool evaluate();
+
+    void reset() override;
 };
 
 class Sequence
@@ -112,8 +114,6 @@ private:
 
     void initVariables();
     static double timeLastUpdate;
-    static queue<string> broadcastQueue;
-    static string currentBroadcast;
     static vector<Sequence *> sequenceList;
     static shared_ptr<Block> ongoingBlock;
 
@@ -130,14 +130,13 @@ public:
         isCompiled = false;
         name = "unnamed sequence";
     }
+    virtual ~Sequence();
 
     template<typename... BlockPtrs>
     Sequence(BlockPtrs... blockPtrs) : Sequence()
     {
         addArgs(blockPtrs...);
     }
-
-    ~Sequence();
 
     template<typename... BlockPtrs>
     void compose(BlockPtrs... blockPtrs)
@@ -203,17 +202,14 @@ public:
 
     static void spinOnce(double loopRate);
 
-    static void broadcast(string msg);
-
     static void printDebug(string msg, bool line = false);
-
-    static string getCurrentBroadcast();
 
     static void startSequence(string sequenceName);
 
     static Sequence* getSequenceByName(string name);
 
     static Sequence* thisSequence();
+    static Broadcast broadcast;
 };
 
 class Block
@@ -223,7 +219,7 @@ protected:
 public:
 
     Block();
-    ~Block(){cout<<"destructir block"<<endl;}
+    virtual ~Block(){}
 
     void setContainerSequence(Sequence *sequence);
 
@@ -240,6 +236,43 @@ public:
     virtual void init(bool debug);
 
     virtual void print();
+};
+
+class Broadcast
+{
+public:
+    class BroadcastListener;
+private:
+    vector<shared_ptr<BroadcastListener>> listeners;
+public:
+    class BroadcastListener
+    {
+    private:
+        function<void(void)> broadcastHandler;
+        string msg;
+    public:
+        BroadcastListener(string &msg, function<void(void)> broadcastHandler)
+        : msg(msg), broadcastHandler(broadcastHandler)
+        {
+        }
+
+        void notify(string msg)
+        {
+            if (this->msg == msg)broadcastHandler();
+        }
+    };
+
+
+    void addBroadcastListener(shared_ptr<BroadcastListener> listener)
+    {
+        listeners.push_back(listener);
+    }
+
+    void broadcast(string msg)
+    {
+        vector<shared_ptr<BroadcastListener>>::iterator iter;
+        for (iter = listeners.begin(); iter != listeners.end(); iter++) (*iter)->notify(msg);
+    }
 };
 
 }
