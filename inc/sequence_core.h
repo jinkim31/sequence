@@ -70,7 +70,7 @@ private:
 public:
     BroadcastCondition(string msg);
     ~BroadcastCondition();
-    virtual bool evaluate();
+    bool evaluate() override;
 
     void reset() override;
 };
@@ -251,28 +251,14 @@ public:
         function<void(void)> broadcastHandler;
         string msg;
     public:
-        BroadcastListener(string &msg, function<void(void)> broadcastHandler)
-        : msg(msg), broadcastHandler(broadcastHandler)
-        {
-        }
+        BroadcastListener(string &msg, function<void(void)> broadcastHandler);
 
-        void notify(string msg)
-        {
-            if (this->msg == msg)broadcastHandler();
-        }
+        void notify(string msg);
     };
 
+    void addBroadcastListener(shared_ptr<BroadcastListener> listener);
 
-    void addBroadcastListener(shared_ptr<BroadcastListener> listener)
-    {
-        listeners.push_back(listener);
-    }
-
-    void broadcast(string msg)
-    {
-        vector<shared_ptr<BroadcastListener>>::iterator iter;
-        for (iter = listeners.begin(); iter != listeners.end(); iter++) (*iter)->notify(msg);
-    }
+    void broadcast(string msg);
 };
 
 }
