@@ -17,11 +17,11 @@ private:
 public:
     Print(const std::string &text);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class Debug : public Block
@@ -31,11 +31,11 @@ private:
 public:
     Debug(const string &text);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class Delay : public Block
@@ -45,11 +45,11 @@ private:
 public:
     Delay(double timeSeconds);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class Function : public Block
@@ -59,11 +59,11 @@ private:
 public:
     Function(function<void(void)> func);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class WaitFor : public Block
@@ -78,11 +78,11 @@ public:
 
     WaitFor(shared_ptr<Condition> breakCondition);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class SequenceBlock : public Block
@@ -98,15 +98,15 @@ public:
 
     void setSequence(shared_ptr<Sequence> sequence);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 
-    virtual void init(bool debug) final;
+    virtual void init(bool debug);
 
-    virtual void print() final;
+    virtual void print();
 };
 
 class LoopSequence : public SequenceBlock
@@ -123,9 +123,9 @@ public:
 
     void reset() override;
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class WaitForBroadcast : public Block
@@ -140,11 +140,11 @@ public:
 
     WaitForBroadcast(string broadcastMsg);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class Broadcast : public Block
@@ -154,11 +154,11 @@ private:
 public:
     Broadcast(string msg, bool global = true);
 
-    virtual bool update(SpinInfo spinInfo);
+    bool update(SpinInfo spinInfo) override;
 
-    virtual void reset();
+    void reset() override;
 
-    virtual string generateDebugName();
+    string generateDebugName() override;
 };
 
 class StartSequence : public Block

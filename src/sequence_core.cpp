@@ -308,3 +308,23 @@ Sequence* Block::getContainerSequence()
 {
     return containerSequence;
 }
+
+Broadcast::BroadcastListener::BroadcastListener(string &msg, function<void(void)> broadcastHandler): msg(msg), broadcastHandler(broadcastHandler)
+{
+}
+
+void Broadcast::BroadcastListener::notify(string msg)
+{
+    if (this->msg == msg)broadcastHandler();
+}
+
+void Broadcast::addBroadcastListener(shared_ptr<BroadcastListener> listener)
+{
+    listeners.push_back(listener);
+}
+
+void Broadcast::broadcast(string msg)
+{
+    vector<shared_ptr<BroadcastListener>>::iterator iter;
+    for (iter = listeners.begin(); iter != listeners.end(); iter++) (*iter)->notify(msg);
+}
