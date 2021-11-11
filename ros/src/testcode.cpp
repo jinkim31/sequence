@@ -5,17 +5,6 @@
 using namespace std;
 using namespace seq;
 
-class TestBlock : public block::SequenceBlock
-{
-public:
-    TestBlock():SequenceBlock()
-    {
-        shared_ptr<Sequence> sequence = make_shared<Sequence>();
-        sequence->compose("test", make_shared<block::Debug>("hi"));
-        setSequence(sequence);
-    }
-};
-
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "sequence_test_node");
@@ -25,20 +14,15 @@ int main(int argc, char **argv)
     sequence.addVariable(make_shared<Variable<int>>("cnt",0));
     sequence.compose
     (
-    make_shared<block::LoopSequence>(make_shared<BroadcastCondition>("break"), make_shared<Sequence>
-    (
-        make_shared<block::Function>([&]
-        {
-            int& cnt = sequence.getVariable<int>("cnt") ->get();
-            cnt++;
-            Sequence::printDebug(to_string(cnt));
-            if(cnt>=10)
-            {
-                Sequence::broadcast.broadcast("break");
-            }
-        }),
-        make_shared<block::Delay>(0.3)
-    ))
+        "Main Sequence",
+        make_shared<block::Debug>("Inner sequence start"),
+        make_shared<block::SequenceBlock>(make_shared<Sequence>
+        (
+            "Inner Sequence",
+            make_shared<block::Debug>("Sequence in a sequence"),
+            make_shared<block::Delay>(1.0)
+        )),
+        make_shared<block::Debug>("Inner sequence end")
     );
     sequence.compile(true);
     sequence.start();

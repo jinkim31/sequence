@@ -15,28 +15,29 @@ using namespace seq;
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "mission_control");
+    ros::init(argc, argv, "sequence_test_node");
     ros::NodeHandle nh;
-    ros::Rate loopRate(100);
 
-    Sequence sequence
+    Sequence sequence;
+    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
+    sequence.compose
     (
-        "Main Sequence",
-        new block::Debug("Hello"),
-        new block::Delay(1.0),
-        new block::Debug("World"),
-        new block::Delay(1.0)
+        "main",
+        make_shared<block::Debug>("Hello"),
+        make_shared<block::Delay>(0.5),
+        make_shared<block::Debug>("World")
     );
     sequence.compile(true);
     sequence.start();
 
+
+    ros::Rate loopRate(100);
     while (ros::ok())
     {
-        ros::spinOnce();
         Sequence::spinOnce();
+        ros::spinOnce();
         loopRate.sleep();
     }
-    return 0;
 }
 
 
@@ -45,14 +46,13 @@ int main(int argc, char **argv)
 Result
 
 ```
-Sequence started.(Main Sequence)
+Sequence started.(main)
 |___Debug(Hello)
 |>  Hello
-|___Delay(1.000000)
+|___Delay(0.500000)
 |___Debug(World)
 |>  World
-|___Delay(1.000000)
-Sequence terminated.(Main Sequence)
+Sequence terminated.(main)
 ```
 
 ### Sequence in a sequence
@@ -66,34 +66,35 @@ using namespace seq;
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "mission_control");
+    ros::init(argc, argv, "sequence_test_node");
     ros::NodeHandle nh;
-    ros::Rate loopRate(100);
 
-    Sequence sequence
+    Sequence sequence;
+    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
+    sequence.compose
     (
         "Main Sequence",
-        new block::Debug("Inner sequence start"),
-        new block::SequenceBlock(new Sequence
+        make_shared<block::Debug>("Inner sequence start"),
+        make_shared<block::SequenceBlock>(make_shared<Sequence>
         (
             "Inner Sequence",
-            new block::Debug("Sequence in a sequence"),
-            new block::Delay(1.0)
+            make_shared<block::Debug>("Sequence in a sequence"),
+            make_shared<block::Delay>(1.0)
         )),
-        new block::Debug("Inner sequence end")
+        make_shared<block::Debug>("Inner sequence end")
     );
     sequence.compile(true);
     sequence.start();
 
+
+    ros::Rate loopRate(100);
     while (ros::ok())
     {
-        ros::spinOnce();
         Sequence::spinOnce();
+        ros::spinOnce();
         loopRate.sleep();
     }
-    return 0;
 }
-
 ```
 
 Result
@@ -106,115 +107,8 @@ Sequence started.(Main Sequence)
 | |___Debug(Sequence in a sequence)
 | |>  Sequence in a sequence
 | |___Delay(1.000000)
-| |___Debug(Inner Sequence)
+|___Debug(Inner sequence end)
 |>  Inner sequence end
-Sequence terminated.(Main Sequence)
-```
-
-### Broadcast Block
-
-```c++
-#include <ros/ros.h>
-#include <sequence.h>
-
-using namespace std;
-using namespace seq;
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "mission_control");
-    ros::NodeHandle nh;
-    ros::Rate loopRate(100);
-
-    Sequence mainSequence
-    (
-        "Main Sequence",
-        new block::Debug("Sequence start"),
-        new block::WaitForBroadcast("Broadcast!"),
-        new block::Debug("Sequence end")
-    );
-    mainSequence.compile(true);
-    mainSequence.start();
-    
-    Sequence broadcasterSequence
-    (
-        "Broadcaster Sequence",
-        new block::Delay(1.0),
-	new block::Broadcast("Broadcast!");
-    );
-    broadcasterSequence.compile(false);
-    broadcasterSequence.start();
-
-    while (ros::ok())
-    {
-        ros::spinOnce();
-        Sequence::spinOnce();
-        loopRate.sleep();
-    }
-    return 0;
-}
-
-```
-
-Result
-
-```
-Sequence started.(Main Sequence)
-|___Debug(Sequence start)
-|>  Sequence start
-|___WaitForBroadcast(Broadcast!)
-|___Debug(Sequence start)
-|>  Sequence end
-Sequence terminated.(Main Sequence)
-```
-
-### Broadcast
-
-```c++
-#include <ros/ros.h>
-#include <sequence.h>
-
-using namespace std;
-using namespace seq;
-
-int main(int argc, char **argv)
-{
-    ros::init(argc, argv, "mission_control");
-    ros::NodeHandle nh;
-    ros::Rate loopRate(100);
-
-    Sequence sequence
-    (
-        "Main Sequence",
-        new block::Debug("Sequence start"),
-        new block::WaitForBroadcast("Broadcast!"),
-        new block::Debug("Sequence end")
-    );
-    sequence.compile(true);
-    sequence.start();
-
-    while (ros::ok())
-    {
-    	static cnt = 0;
-    	if(cnt++ == 10) Sequence::broadcast("Broadcast!");//broadcast message "Broadcast!" one seconds after start
-        ros::spinOnce();
-        Sequence::spinOnce();
-        loopRate.sleep();
-    }
-    return 0;
-}
-
-```
-
-Result
-
-```
-Sequence started.(Main Sequence)
-|___Debug(Sequence start)
-|>  Sequence start
-|___WaitForBroadcast(Broadcast!)
-|___Debug(Sequence start)
-|>  Sequence end
 Sequence terminated.(Main Sequence)
 ```
 
@@ -234,23 +128,24 @@ int sequenceCnt=0;
 
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-	Sequence sequence
-	(
-		new block::LoopSequence(new LambdaCondition([]{return false;}), new Sequence
-		(
-		    new block::Function([&]{sequenceCnt++;}),
-		    new block::Delay(1)
-		))
-	);
+    /* USER CODE BEGIN 1 */
+    Sequence sequence
+    (
+        make_shared<block::LoopSequence>( make_shared<LambdaCondition>([]{return false;}),  make_shared<Sequence>
+        (
+            make_shared<block::Function>([&]{sequenceCnt++;}),
+            make_shared<block::Delay>(1)
+        ))
+    );
+    
+    sequence.compile();
+    sequence.start();
 
-	sequence.compile();
-	sequence.start();
-
-  /* USER CODE END 1 */
-  ...
-  
+    /* USER CODE END 1 */
+    ...
+    
 /* USER CODE BEGIN 4 */
+    
 //100Hz(0.001sec) timer callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
