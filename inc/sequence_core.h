@@ -17,7 +17,10 @@ using namespace std;
 namespace seq
 {
 
-/*Exceptions*/
+/***********************************************************************************************************************
+ * Exceptions
+ **********************************************************************************************************************/
+
 class InvalidOperationException : runtime_error
 {
 public:
@@ -32,15 +35,21 @@ public:
     {};
 };
 
-/*Structs*/
+/***********************************************************************************************************************
+ * Structs
+ **********************************************************************************************************************/
+
 struct SpinInfo
 {
     double timeDelta;
 };
 
-/*Classes*/
-class Block;//forward declaration
-class Broadcast;;//forward declaration
+/***********************************************************************************************************************
+ * Classes
+ **********************************************************************************************************************/
+
+class Block;        //forward declaration
+class Broadcast;    //forward declaration
 
 class IVariable
 {
@@ -261,9 +270,9 @@ public:
     virtual string generateDebugName();
 
     virtual bool
-    update(SpinInfo spinInfo) = 0;  //returns true when block is 'finished' and good to move on to the next block.
-    virtual void reset() = 0;  //Sequence calls reset() before processing each block.
-    virtual void startCallback(); //callback that is called once when the block is starting.
+    update(SpinInfo spinInfo) = 0;      //returns true when block is 'finished' and good to move on to the next block.
+    virtual void reset() = 0;           //Sequence calls reset() before processing each block.
+    virtual void startCallback();       //callback that is called once when the block is starting.
     virtual void endCallback();
 
     virtual void init(bool debug);
