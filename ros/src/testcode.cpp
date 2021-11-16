@@ -11,16 +11,20 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     Sequence sequence;
-    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
+    sequence.addVariable<int>("i",0);
     sequence.compose
     (
         "Main Sequence",
         make_shared<block::Debug>("Inner sequence start"),
-        make_shared<block::SequenceBlock>(make_shared<Sequence>
+        make_shared<block::LoopSequence>(make_shared<LambdaCondition>([&]
+        {return Sequence::getVariable<int>("i")>2;}), make_shared<Sequence>
         (
-            "Inner Sequence",
-            make_shared<block::Debug>("Sequence in a sequence"),
-            make_shared<block::Delay>(1.0)
+            make_shared<block::Function>([&]
+            {
+                int& i = Sequence::getVariable<int>("i");
+                Sequence::printDebug("i="+to_string(i));
+                i++;
+            })
         )),
         make_shared<block::Debug>("Inner sequence end")
     );

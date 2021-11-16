@@ -113,8 +113,7 @@ string seq::block::WaitFor::generateDebugName()
 
 seq::block::SequenceBlock::SequenceBlock(shared_ptr<Sequence> sequence)
 {
-    this->sequence = sequence;
-    sequence->setAsOrigin(false);
+    setSequence(sequence);
 }
 
 seq::block::SequenceBlock::SequenceBlock()
@@ -159,6 +158,12 @@ void seq::block::SequenceBlock::setSequence(shared_ptr<Sequence> sequence)
     sequence->setAsOrigin(false);
 }
 
+void seq::block::SequenceBlock::setContainerSequence(seq::Sequence *sequence)
+{
+    Block::setContainerSequence(sequence);
+    this->sequence->setParentSequence(containerSequence);
+}
+
 seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, double timeout,function<void(void)> timeoutHandler, shared_ptr<Sequence> sequence) : SequenceBlock(sequence)
 {
     this->breakCondition = breakCondition;
@@ -174,21 +179,21 @@ seq::block::LoopSequence::LoopSequence(shared_ptr<Condition> breakCondition, sha
 
 bool seq::block::LoopSequence::update(SpinInfo spinInfo)
 {
+    if(breakCondition->evaluate())
+    {
+        sequence->stop();
+        return true;
+    }
     if (timeout.addTime(spinInfo.timeDelta))
     {
         Sequence::printDebug("timed out");
         sequence->stop();
-        return true;//tined out. forced finish
+        return true;//timed out. forced finish
     }
     if (sequence->update(spinInfo))//inner sequence finished
     {
         sequence->stop();
         sequence->start();
-    }
-    if(breakCondition->evaluate())
-    {
-        sequence->stop();
-        return true;
     }
     return false;
 }

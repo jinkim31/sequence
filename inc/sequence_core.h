@@ -18,10 +18,17 @@ namespace seq
 {
 
 /*Exceptions*/
-class InvalidOperation : runtime_error
+class InvalidOperationException : runtime_error
 {
 public:
-    InvalidOperation(string msg) : runtime_error(msg.c_str())
+    InvalidOperationException(string msg) : runtime_error(msg.c_str())
+    {};
+};
+
+class NoSuchVariableException : runtime_error
+{
+public:
+    NoSuchVariableException(string msg) : runtime_error(msg.c_str())
     {};
 };
 
@@ -54,10 +61,10 @@ private:
     T initialVal;
     bool initValueDefined;
 public:
-    Variable(string id, T initialVal): IVariable(id), initialVal(initialVal){val = initialVal; initValueDefined = true;}
-    Variable(string id) : IVariable(id){initValueDefined = false;};
+    Variable(const string &id, const T &initialVal): IVariable(id), initialVal(initialVal){val = initialVal; initValueDefined = true;}
+    Variable(const string &id) : IVariable(id){initValueDefined = false;};
     virtual ~Variable(){}
-    void set(T val){this->val = val;}
+    void set(const T &val){this->val = val;}
     T& get(){return val;};
     void init() override{if(initValueDefined) val = initialVal;}
 };
@@ -89,6 +96,7 @@ private:
     bool debug;
     unsigned int hierarchyLevel;
     bool isCompiled;
+    Sequence* parentSequence;
 
     //Recurse through variadic arguments.
     template<typename... BlockPtrs>
@@ -129,6 +137,7 @@ public:
         isOrigin = false;
         isCompiled = false;
         name = "unnamed sequence";
+        parentSequence = nullptr;
     }
     virtual ~Sequence();
 
@@ -176,13 +185,26 @@ public:
 
     void print();
 
-    void addVariable(shared_ptr<IVariable> variableUnique);
+    void setParentSequence(Sequence* sequence);
 
     template<typename T>
-    shared_ptr<Variable<T>> getVariable(string id)
+    void addVariable(const string &id, const T &initValue)
     {
-        shared_ptr<IVariable> g;
+        auto variableShared = make_shared<Variable<T>>(id, initValue);
+        variableList.push_back(variableShared);
+    }
 
+    template<typename T>
+    void addVariable(const string &id)
+    {
+        auto variableShared = make_shared<Variable<T>>(id);
+        variableList.push_back(variableShared);
+    }
+
+    template<typename T>
+    T& getSequenceVariable(string id)
+    {
+        //cout<<"searching sequence "<<this->name<<endl;
         vector<shared_ptr<IVariable>>::iterator iter;
         //cout<<variableList.size()<<" variables (get)"<<endl;
         for(iter = variableList.begin(); iter != variableList.end(); iter++)
@@ -190,12 +212,17 @@ public:
             if((*iter)->getId() == id)
             {
                 //cout<<"found variable"<<endl;
-                return dynamic_pointer_cast<Variable<T>>(*iter);
+                return dynamic_pointer_cast<Variable<T>>(*iter)->get();
             }
         }
 
-        std::cerr<<"[ Sequence ] No variable with ID "<<id<<" found."<<endl;
-        return shared_ptr<Variable<T>>(nullptr);
+        if(parentSequence == nullptr)
+        {
+            std::cerr<<"[ Sequence ] No variable with ID "<<id<<" found."<<endl;
+            throw NoSuchVariableException("No variable with ID " + id + " found.");
+        }
+
+        return parentSequence->getSequenceVariable<T>(id);
     }
 
     static void spinOnce();
@@ -207,6 +234,12 @@ public:
     static void startSequence(string sequenceName);
 
     static Sequence* getSequenceByName(string name);
+
+    template<typename T>
+    static T& getVariable(string id)
+    {
+        return thisSequence()->getSequenceVariable<T>(id);
+    }
 
     static Sequence* thisSequence();
     static Broadcast broadcast;
@@ -221,7 +254,7 @@ public:
     Block();
     virtual ~Block(){}
 
-    void setContainerSequence(Sequence *sequence);
+    virtual void setContainerSequence(Sequence *sequence);
 
     Sequence *getContainerSequence();
 
@@ -251,7 +284,7 @@ public:
         function<void(void)> broadcastHandler;
         string msg;
     public:
-        BroadcastListener(string &msg, function<void(void)> broadcastHandler);
+        BroadcastListener(const string &msg, function<void(void)> broadcastHandler);
 
         void notify(string msg);
     };

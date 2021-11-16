@@ -49,6 +49,7 @@ void Sequence::add(shared_ptr<Block> block)
     {
         return;
     }
+    block->setContainerSequence(this);
     blockList.push_back(block);
 }
 
@@ -248,12 +249,6 @@ Sequence* Sequence::getSequenceByName(string name)
     return nullptr;
 }
 
-void Sequence::addVariable(shared_ptr<IVariable> variableUnique)
-{
-    variableList.push_back(variableUnique);
-    //cout<<variableList.size()<<" variables (add)"<<endl;
-}
-
 void Sequence::initVariables()
 {
     vector<shared_ptr<IVariable>>::iterator iter;
@@ -267,6 +262,11 @@ void Sequence::initVariables()
 Sequence *Sequence::thisSequence()
 {
     return ongoingBlock->getContainerSequence();
+}
+
+void Sequence::setParentSequence(Sequence* sequence)
+{
+    this->parentSequence = sequence;
 }
 
 seq::Block::Block()
@@ -309,7 +309,7 @@ Sequence* Block::getContainerSequence()
     return containerSequence;
 }
 
-Broadcast::BroadcastListener::BroadcastListener(string &msg, function<void(void)> broadcastHandler): msg(msg), broadcastHandler(broadcastHandler)
+Broadcast::BroadcastListener::BroadcastListener(const string &msg, function<void(void)> broadcastHandler): msg(msg), broadcastHandler(broadcastHandler)
 {
 }
 

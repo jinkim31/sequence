@@ -96,6 +96,8 @@ public:
 
     ~SequenceBlock();
 
+    void setContainerSequence(Sequence *sequence) override;
+
     void setSequence(shared_ptr<Sequence> sequence);
 
     bool update(SpinInfo spinInfo) override;
