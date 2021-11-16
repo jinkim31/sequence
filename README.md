@@ -19,7 +19,6 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     Sequence sequence;
-    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
     sequence.compose
     (
         "main",
@@ -70,7 +69,6 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     Sequence sequence;
-    sequence.addVariable(make_shared<Variable<int>>("cnt",0));
     sequence.compose
     (
         "Main Sequence",
