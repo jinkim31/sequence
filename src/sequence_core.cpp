@@ -257,6 +257,10 @@ void Sequence::initVariables()
 
 Sequence *Sequence::thisSequence()
 {
+    if(ongoingBlock == nullptr)
+    {
+        throw SequenceComponentNullException("Cannot determine /'thisSequence/' now. use object name or pointer to directly access the sequence.");
+    }
     return ongoingBlock->getContainerSequence();
 }
 

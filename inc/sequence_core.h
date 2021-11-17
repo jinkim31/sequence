@@ -35,6 +35,12 @@ public:
     {};
 };
 
+class SequenceComponentNullException : runtime_error
+{
+public:
+    explicit SequenceComponentNullException(string msg) : runtime_error(msg.c_str())
+    {};
+};
 /***********************************************************************************************************************
  * Structs
  **********************************************************************************************************************/
@@ -181,9 +187,9 @@ public:
 
     bool update(SpinInfo spinInfo);
 
-    void start();  //start or resume the sequence.
-    void suspend();  //pause the sequence without resetting the progress.
-    void stop();  //stop the sequence.
+    void start();           //start or resume the sequence.
+    void suspend();         //pause the sequence without resetting the progress.
+    void stop();            //stop the sequence.
     bool isRunning() const;
 
     bool isFinished() const;
@@ -257,7 +263,7 @@ public:
 class Block
 {
 protected:
-    Sequence *containerSequence;
+    Sequence* containerSequence;
 public:
 
     Block();

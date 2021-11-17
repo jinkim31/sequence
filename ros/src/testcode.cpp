@@ -38,5 +38,6 @@ int main(int argc, char **argv)
         Sequence::spinOnce();
         ros::spinOnce();
         loopRate.sleep();
+        //if(sequence.isFinished()) return 0;
     }
 }
