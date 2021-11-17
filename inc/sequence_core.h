@@ -24,14 +24,14 @@ namespace seq
 class InvalidOperationException : runtime_error
 {
 public:
-    InvalidOperationException(string msg) : runtime_error(msg.c_str())
+    explicit InvalidOperationException(string msg) : runtime_error(msg.c_str())
     {};
 };
 
 class NoSuchVariableException : runtime_error
 {
 public:
-    NoSuchVariableException(string msg) : runtime_error(msg.c_str())
+    explicit NoSuchVariableException(string msg) : runtime_error(msg.c_str())
     {};
 };
 
@@ -56,8 +56,8 @@ class IVariable
 private:
     string id;
 public:
-    IVariable(string id) : id(id){}
-    virtual ~IVariable() {}
+    explicit IVariable(string id) : id(id){}
+    virtual ~IVariable() = default;
     virtual void init() = 0;
     string getId(){return id;}
 };
@@ -71,8 +71,8 @@ private:
     bool initValueDefined;
 public:
     Variable(const string &id, const T &initialVal): IVariable(id), initialVal(initialVal){val = initialVal; initValueDefined = true;}
-    Variable(const string &id) : IVariable(id){initValueDefined = false;};
-    virtual ~Variable(){}
+    explicit Variable(const string &id) : IVariable(id){initValueDefined = false;};
+    ~Variable() override = default;
     void set(const T &val){this->val = val;}
     T& get(){return val;};
     void init() override{if(initValueDefined) val = initialVal;}
@@ -84,8 +84,8 @@ private:
     string msg;
     bool triggered;
 public:
-    BroadcastCondition(string msg);
-    ~BroadcastCondition();
+    explicit BroadcastCondition(const string& msg);
+    ~BroadcastCondition() = default;
     bool evaluate() override;
 
     void reset() override;
@@ -126,7 +126,6 @@ private:
     void addArgs(shared_ptr<Block> blockPtr)
     {
         add(blockPtr);
-        return;
     }
 
     void initVariables();
@@ -144,6 +143,7 @@ public:
         steadyStep = false;
         hierarchyLevel = 0;
         isOrigin = false;
+        debug = false;
         isCompiled = false;
         name = "unnamed sequence";
         parentSequence = nullptr;
@@ -151,7 +151,7 @@ public:
     virtual ~Sequence();
 
     template<typename... BlockPtrs>
-    Sequence(BlockPtrs... blockPtrs) : Sequence()
+    explicit Sequence(BlockPtrs... blockPtrs) : Sequence()
     {
         addArgs(blockPtrs...);
     }
@@ -173,7 +173,7 @@ public:
     string getName()
     { return name; }
 
-    unsigned int getHierarchyLevel();
+    unsigned int getHierarchyLevel() const;
 
     void add(shared_ptr<Block> block);
 
@@ -184,9 +184,9 @@ public:
     void start();  //start or resume the sequence.
     void suspend();  //pause the sequence without resetting the progress.
     void stop();  //stop the sequence.
-    bool isRunning();
+    bool isRunning() const;
 
-    bool isFinished();
+    bool isFinished() const;
 
     void enableSteadyStep(bool value);
 
@@ -238,11 +238,11 @@ public:
 
     static void spinOnce(double loopRate);
 
-    static void printDebug(string msg, bool line = false);
+    static void printDebug(const string& msg, bool line = false);
 
-    static void startSequence(string sequenceName);
+    static void startSequence(const string& sequenceName);
 
-    static Sequence* getSequenceByName(string name);
+    static Sequence* getSequenceByName(const string& name);
 
     template<typename T>
     static T& getVariable(string id)
@@ -261,7 +261,7 @@ protected:
 public:
 
     Block();
-    virtual ~Block(){}
+    virtual ~Block()= default;
 
     virtual void setContainerSequence(Sequence *sequence);
 
@@ -294,13 +294,14 @@ public:
         string msg;
     public:
         BroadcastListener(const string &msg, function<void(void)> broadcastHandler);
-
-        void notify(string msg);
+        ~BroadcastListener() = default;
+        void notify(const string& msg);
     };
 
-    void addBroadcastListener(shared_ptr<BroadcastListener> listener);
 
-    void broadcast(string msg);
+    void addBroadcastListener(const shared_ptr<BroadcastListener>& listener);
+
+    void broadcast(const string& msg);
 };
 
 }

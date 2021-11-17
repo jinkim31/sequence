@@ -15,7 +15,7 @@ class Print : public Block
 private:
     std::string text;
 public:
-    Print(const std::string &text);
+    explicit Print(const std::string &text);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -29,7 +29,7 @@ class Debug : public Block
 private:
     string text;
 public:
-    Debug(const string &text);
+    explicit Debug(const string &text);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -43,7 +43,7 @@ class Delay : public Block
 private:
     Timeout timeout;
 public:
-    Delay(double timeSeconds);
+    explicit Delay(double timeSeconds);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -57,7 +57,7 @@ class Function : public Block
 private:
     function<void(void)> func;
 public:
-    Function(function<void(void)> func);
+    explicit Function(function<void(void)> func);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -76,7 +76,7 @@ public:
 
     WaitFor(shared_ptr<Condition> breakCondition, double timeout);
 
-    WaitFor(shared_ptr<Condition> breakCondition);
+    explicit WaitFor(shared_ptr<Condition> breakCondition);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -92,9 +92,9 @@ protected:
     shared_ptr<Sequence> sequence;
     SequenceBlock();
 public:
-    SequenceBlock(shared_ptr<Sequence> sequence);
+    explicit SequenceBlock(shared_ptr<Sequence> sequence);
 
-    ~SequenceBlock();
+    virtual ~SequenceBlock();
 
     void setContainerSequence(Sequence *sequence) override;
 
@@ -140,7 +140,7 @@ public:
 
     WaitForBroadcast(string broadcastMsg, double timeout);
 
-    WaitForBroadcast(string broadcastMsg);
+    explicit WaitForBroadcast(string broadcastMsg);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -154,7 +154,7 @@ class Broadcast : public Block
 private:
     string msg;
 public:
-    Broadcast(string msg, bool global = true);
+    explicit Broadcast(string msg, bool global = true);
 
     bool update(SpinInfo spinInfo) override;
 
@@ -168,7 +168,7 @@ class StartSequence : public Block
 private:
     string sequenceName;
 public:
-    StartSequence(string sequenceName);
+    explicit StartSequence(string sequenceName);
 
     bool update(SpinInfo spinInfo) override;
 

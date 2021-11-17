@@ -1,3 +1,4 @@
+
 #include "../inc/sequence_core.h"
 
 using namespace seq;
@@ -7,7 +8,7 @@ shared_ptr<Block> Sequence::ongoingBlock;
 double Sequence::timeLastUpdate;
 Broadcast Sequence::broadcast;
 
-seq::BroadcastCondition::BroadcastCondition(string msg) : msg(msg)
+seq::BroadcastCondition::BroadcastCondition(const string& msg) : msg(msg)
 {
     triggered = false;
     Sequence::broadcast.addBroadcastListener(make_shared<Broadcast::BroadcastListener>(msg, [&]{triggered= true;}));
@@ -16,11 +17,6 @@ seq::BroadcastCondition::BroadcastCondition(string msg) : msg(msg)
 bool seq::BroadcastCondition::evaluate()
 {
     return triggered;
-}
-
-BroadcastCondition::~BroadcastCondition()
-{
-
 }
 
 void BroadcastCondition::reset()
@@ -38,7 +34,7 @@ void seq::Sequence::setHierarchyLevel(unsigned int value)
     hierarchyLevel = value;
 }
 
-unsigned int seq::Sequence::getHierarchyLevel()
+unsigned int seq::Sequence::getHierarchyLevel() const
 {
     return hierarchyLevel;
 }
@@ -132,12 +128,12 @@ void Sequence::stop()
     currentStep = 0;
 }
 
-bool Sequence::isRunning()
+bool Sequence::isRunning() const
 {
     return running;
 }
 
-bool Sequence::isFinished()
+bool Sequence::isFinished() const
 {
     return finished;
 }
@@ -155,7 +151,7 @@ void Sequence::init(bool debug)
     }
 
     this->debug = debug;
-    for (shared_ptr<Block> block: blockList)
+    for (const shared_ptr<Block>& block: blockList)
     {
         block->setContainerSequence(this);
         block->init(debug);
@@ -173,7 +169,7 @@ void Sequence::print()
     //if(isOrigin && !isCompiled) throw InvalidOperation("init before print.");
     if (isOrigin)cout << string("Origin(") + name + string(")") << endl;
     else cout << string("Inner(") + name + string(")") << endl;
-    for (shared_ptr<Block> block: blockList)
+    for (const shared_ptr<Block>& block: blockList)
     {
         block->print();
     }
@@ -201,7 +197,7 @@ void Sequence::compile(bool debug)
     init(debug);
 }
 
-void Sequence::printDebug(string msg, bool line)
+void Sequence::printDebug(const string& msg, bool line)
 {
     if (!ongoingBlock->getContainerSequence()->debugEnabled()) return;
     cout << "|";
@@ -213,7 +209,7 @@ void Sequence::printDebug(string msg, bool line)
 
 void Sequence::spinOnce(double loopRate)
 {
-    SpinInfo spinInfo;
+    SpinInfo spinInfo{};
     spinInfo.timeDelta = loopRate;
 
     for (Sequence *sequence: sequenceList)
@@ -225,7 +221,7 @@ void Sequence::spinOnce(double loopRate)
     }
 }
 
-void Sequence::startSequence(string sequenceName)
+void Sequence::startSequence(const string& sequenceName)
 {
     for(Sequence* sequence : sequenceList)
     {
@@ -236,7 +232,7 @@ void Sequence::startSequence(string sequenceName)
     }
 }
 
-Sequence* Sequence::getSequenceByName(string name)
+Sequence* Sequence::getSequenceByName(const string& name)
 {
     for(Sequence* sequence : sequenceList)
     {
@@ -276,7 +272,7 @@ seq::Block::Block()
 
 string seq::Block::generateDebugName()
 {
-    return string("Unknown block");
+    return "Unknown block";
 }
 
 void Block::init(bool debug)
@@ -313,17 +309,17 @@ Broadcast::BroadcastListener::BroadcastListener(const string &msg, function<void
 {
 }
 
-void Broadcast::BroadcastListener::notify(string msg)
+void Broadcast::BroadcastListener::notify(const string& msg)
 {
     if (this->msg == msg)broadcastHandler();
 }
 
-void Broadcast::addBroadcastListener(shared_ptr<BroadcastListener> listener)
+void Broadcast::addBroadcastListener(const shared_ptr<BroadcastListener>& listener)
 {
     listeners.push_back(listener);
 }
 
-void Broadcast::broadcast(string msg)
+void Broadcast::broadcast(const string& msg)
 {
     vector<shared_ptr<BroadcastListener>>::iterator iter;
     for (iter = listeners.begin(); iter != listeners.end(); iter++) (*iter)->notify(msg);
