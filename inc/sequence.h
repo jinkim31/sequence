@@ -94,8 +94,12 @@ public:
 
 private:
     bool update(SpinInfo spinInfo) override;
-
     void reset() override;
+
+public:
+    string generateDebugName() override;
+
+    void init(bool debug) override;
 
 private:
     shared_ptr<Condition> condition;

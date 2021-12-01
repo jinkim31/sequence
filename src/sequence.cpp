@@ -225,7 +225,7 @@ bool seq::block::Debug::update(seq::SpinInfo spinInfo)
 
 string seq::block::Debug::generateDebugName()
 {
-    return "Debug(" + text + ")";
+    return "Debug";
 }
 
 void seq::block::Debug::reset()
@@ -299,8 +299,15 @@ void seq::block::StartSequence::reset()
 
 seq::block::StartSequence::StartSequence(string sequenceName) : sequenceName(sequenceName)
 {
-
 }
+
+seq::block::IfElse::IfElse(shared_ptr<Condition> condition, shared_ptr<Sequence> tSequence,
+shared_ptr<Sequence> fSequence) : condition(condition), tSequence(tSequence), fSequence(fSequence)
+{
+    tSequence->setAsOrigin(false);
+    fSequence->setAsOrigin(false);
+}
+
 
 void seq::block::IfElse::reset()
 {
@@ -322,8 +329,15 @@ void seq::block::IfElse::startCallback()
     conditionOnStart = condition->evaluate();
 }
 
-seq::block::IfElse::IfElse(shared_ptr<Condition> condition, shared_ptr<Sequence> tSequence,
-shared_ptr<Sequence> fSequence) : condition(condition), tSequence(tSequence), fSequence(fSequence)
+string seq::block::IfElse::generateDebugName()
 {
+    return "ifElse";
+}
 
+void seq::block::IfElse::init(bool debug)
+{
+    tSequence->setHierarchyLevel(containerSequence->getHierarchyLevel() + 1);
+    tSequence->init(debug);
+    fSequence->setHierarchyLevel(containerSequence->getHierarchyLevel() + 1);
+    fSequence->init(debug);
 }
