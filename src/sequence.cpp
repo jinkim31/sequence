@@ -331,7 +331,7 @@ void seq::block::IfElse::startCallback()
 
 string seq::block::IfElse::generateDebugName()
 {
-    return "ifElse";
+    return "IfElse";
 }
 
 void seq::block::IfElse::init(bool debug)
