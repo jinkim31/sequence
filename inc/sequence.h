@@ -85,19 +85,23 @@ public:
     string generateDebugName() override;
 };
 
-class If : public Block
+class IfElse : public Block
 {
 public:
-    If(shared_ptr<Condition> condition, const function<void(void)>& trueFunction, const function<void(void)>& falseFunction);
-    bool update(SpinInfo spinInfo) override;
-    void reset() override;
+    IfElse(shared_ptr<Condition> condition, shared_ptr<Sequence> tSequence, shared_ptr<Sequence> fSequence);
 
-    string generateDebugName() override;
+    void startCallback() override;
+
+private:
+    bool update(SpinInfo spinInfo) override;
+
+    void reset() override;
 
 private:
     shared_ptr<Condition> condition;
-    function<void(void)> trueFunction;
-    function<void(void)> falseFunction;
+    shared_ptr<Sequence> tSequence;
+    shared_ptr<Sequence> fSequence;
+    bool conditionOnStart{};
 };
 
 class SequenceBlock : public Block

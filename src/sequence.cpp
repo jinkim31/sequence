@@ -302,31 +302,28 @@ seq::block::StartSequence::StartSequence(string sequenceName) : sequenceName(seq
 
 }
 
-bool seq::block::If::update(seq::SpinInfo spinInfo)
+void seq::block::IfElse::reset()
 {
-    if(condition->evaluate())
-    {
-        trueFunction();
-    }
-    else
-    {
-        falseFunction();
-    }
-
-    return true;
-}
-
-void seq::block::If::reset()
-{
+    tSequence->stop();
+    fSequence->stop();
     condition->reset();
 }
 
-seq::block::If::If(shared_ptr<Condition> condition, const function<void(void)> &trueFunction,const function<void(void)> &falseFunction) : condition(condition), trueFunction(trueFunction), falseFunction(falseFunction)
+bool seq::block::IfElse::update(seq::SpinInfo spinInfo)
 {
-
+    if(conditionOnStart) return tSequence->update(spinInfo);
+    else return fSequence->update(spinInfo);
 }
 
-string seq::block::If::generateDebugName()
+void seq::block::IfElse::startCallback()
 {
-    return "if";
+    tSequence->start();
+    fSequence->start();
+    conditionOnStart = condition->evaluate();
+}
+
+seq::block::IfElse::IfElse(shared_ptr<Condition> condition, shared_ptr<Sequence> tSequence,
+shared_ptr<Sequence> fSequence) : condition(condition), tSequence(tSequence), fSequence(fSequence)
+{
+
 }
