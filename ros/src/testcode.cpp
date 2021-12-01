@@ -15,18 +15,15 @@ int main(int argc, char **argv)
     sequence.compose
     (
         "Main Sequence",
-        make_shared<block::Debug>("Inner sequence start"),
-        make_shared<block::LoopSequence>(make_shared<LambdaCondition>([&]
-        {return Sequence::getVariable<int>("i")>2;}), make_shared<Sequence>
-        (
-            make_shared<block::Function>([&]
-            {
-                int& i = Sequence::getVariable<int>("i");
-                Sequence::printDebug("i="+to_string(i));
-                i++;
-            })
-        )),
-        make_shared<block::Debug>("Inner sequence end")
+        make_shared<block::If>(make_shared<LambdaCondition>([]{return true;}),
+        []
+        {
+            Sequence::printDebug("true");
+        },
+        []
+        {
+            Sequence::printDebug("false");
+        })
     );
     sequence.compile(true);
     sequence.start();

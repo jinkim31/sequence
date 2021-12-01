@@ -301,3 +301,32 @@ seq::block::StartSequence::StartSequence(string sequenceName) : sequenceName(seq
 {
 
 }
+
+bool seq::block::If::update(seq::SpinInfo spinInfo)
+{
+    if(condition->evaluate())
+    {
+        trueFunction();
+    }
+    else
+    {
+        falseFunction();
+    }
+
+    return true;
+}
+
+void seq::block::If::reset()
+{
+    condition->reset();
+}
+
+seq::block::If::If(shared_ptr<Condition> condition, const function<void(void)> &trueFunction,const function<void(void)> &falseFunction) : condition(condition), trueFunction(trueFunction), falseFunction(falseFunction)
+{
+
+}
+
+string seq::block::If::generateDebugName()
+{
+    return "if";
+}

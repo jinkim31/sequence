@@ -85,6 +85,21 @@ public:
     string generateDebugName() override;
 };
 
+class If : public Block
+{
+public:
+    If(shared_ptr<Condition> condition, const function<void(void)>& trueFunction, const function<void(void)>& falseFunction);
+    bool update(SpinInfo spinInfo) override;
+    void reset() override;
+
+    string generateDebugName() override;
+
+private:
+    shared_ptr<Condition> condition;
+    function<void(void)> trueFunction;
+    function<void(void)> falseFunction;
+};
+
 class SequenceBlock : public Block
 {
 private:
