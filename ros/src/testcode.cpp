@@ -15,15 +15,7 @@ int main(int argc, char **argv)
     sequence.compose
     (
         "Main Sequence",
-        make_shared<block::If>(make_shared<LambdaCondition>([]{return true;}),
-        []
-        {
-            Sequence::printDebug("true");
-        },
-        []
-        {
-            Sequence::printDebug("false");
-        })
+        make_shared<block::Debug>("asd")
     );
     sequence.compile(true);
     sequence.start();
