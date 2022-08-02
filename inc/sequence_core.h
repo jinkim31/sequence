@@ -21,21 +21,21 @@ namespace seq
  * Exceptions
  **********************************************************************************************************************/
 
-class InvalidOperationException : runtime_error
+class InvalidOperationException : public runtime_error
 {
 public:
     explicit InvalidOperationException(string msg) : runtime_error(msg.c_str())
     {};
 };
 
-class NoSuchVariableException : runtime_error
+class NoSuchVariableException : public runtime_error
 {
 public:
     explicit NoSuchVariableException(string msg) : runtime_error(msg.c_str())
     {};
 };
 
-class SequenceComponentNullException : runtime_error
+class SequenceComponentNullException : public runtime_error
 {
 public:
     explicit SequenceComponentNullException(string msg) : runtime_error(msg.c_str())
